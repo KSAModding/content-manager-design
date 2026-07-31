@@ -1,0 +1,52 @@
+name: RFC proposal
+description: Propose a design decision that needs an RFC
+labels: ["rfc", "stage:draft"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This issue tracks the RFC. The RFC text itself comes as a pull request adding a file under `rfcs/`.
+
+        If the idea is still half-formed, open a [Pre-RFC discussion](https://github.com/KSAModding/mod-manager-design/discussions/categories/pre-rfc) instead. That is the cheaper path and most proposals should start there.
+  - type: input
+    id: title
+    attributes:
+      label: Working title
+      placeholder: Mod metadata format
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What is broken or missing, and what evidence do you have. A bug report, a mod that cannot be expressed, or a workflow that does not scale beats an opinion.
+    validations:
+      required: true
+  - type: checkboxes
+    id: areas
+    attributes:
+      label: Areas affected
+      options:
+        - label: Metadata format
+        - label: Index and distribution
+        - label: Client
+        - label: Loader
+        - label: Versioning and compatibility
+        - label: Publishing workflow
+        - label: Process and governance
+  - type: input
+    id: discussion
+    attributes:
+      label: Pre-RFC discussion link
+      description: Leave empty if there was none.
+  - type: input
+    id: author
+    attributes:
+      label: Who is writing the RFC
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else
+      description: Constraints you already know about, people who need to be in the loop, prior stuff worth reading.

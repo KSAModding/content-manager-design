@@ -1,0 +1,40 @@
+name: Open question
+description: A design question that has no proposal behind it yet
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this when something needs an answer before anyone can sensibly write an RFC.
+
+        If you already know what you want to propose, open an RFC proposal instead.
+  - type: textarea
+    id: question
+    attributes:
+      label: The question
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why it matters
+      description: What gets blocked, or decided wrongly, while this stays open.
+    validations:
+      required: true
+  - type: checkboxes
+    id: areas
+    attributes:
+      label: Areas affected
+      options:
+        - label: Metadata format
+        - label: Index and distribution
+        - label: Client
+        - label: Loader
+        - label: Versioning and compatibility
+        - label: Publishing workflow
+        - label: Process and governance
+  - type: textarea
+    id: known
+    attributes:
+      label: What we already know
+      description: Prior discussion, links, relevant game behavior. Ground any claim about how the game behaves (e.g. in a class and method name).

@@ -1,0 +1,34 @@
+name: Research task
+description: Something we need to find out before we can decide
+labels: ["research"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Research answers a factual question about how something works. It is not a design proposal.
+  - type: textarea
+    id: question
+    attributes:
+      label: What do we need to know
+    validations:
+      required: true
+  - type: textarea
+    id: blocked
+    attributes:
+      label: Which decision is blocked on this
+      description: Link the RFC, issue, or discussion.
+    validations:
+      required: true
+  - type: input
+    id: destination
+    attributes:
+      label: Where the answer gets written down
+      description: A path under `research/`.
+      placeholder: research/ksa-mod-loading.md
+    validations:
+      required: true
+  - type: textarea
+    id: sources
+    attributes:
+      label: Where to look
+      description: Decompiled game source, StarMap source, another project's code, someone who already knows.
