@@ -28,3 +28,4 @@ jobs:
         with:
           args: --offline --no-progress "**/*.md"
           fail: true
+          failIfEmpty: false
