@@ -1,0 +1,10 @@
+{
+  "config": {
+    "MD013": false,   // no line-length limit, we do not hard wrap
+    "MD024": { "siblings_only": true },
+    "MD033": false,   // inline HTML allowed for tables and details blocks
+    "MD041": false    // RFC front matter comes before the first heading
+  },
+  "globs": ["**/*.md"],
+  "ignores": ["node_modules/**"]
+}
