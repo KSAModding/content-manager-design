@@ -66,7 +66,7 @@ If it lands it is the first mechanism by which two KSA setups can hold different
 
 - **A mod that does not go through `Constants.DocumentsFolderPath` escapes it** and keeps writing to the shared location. The pull request says as much.
 
-The pull request states that a non-existent path will crash. `ModLibrary.CheckDirectories` creates both the root folder and the mods folder when they are missing, so at least those two are created rather than failing; the other consumers have not been checked here.
+The pull request states that a non-existent path will crash. `ModLibrary.CheckDirectories` creates both the root folder and the mods folder when they are missing. Per the pull request creator's testing, the `manifest.toml`, `\mods`, `settings.toml`, `\saves`, `\vehicles`, `\logs`, `\crashdumps`, `\HUDLayouts`, etc. files and folders will be automatically created by the game if they do not exist within the instance.
 
 ## The `[StarMap]` section of `mod.toml`
 
