@@ -1,0 +1,17 @@
+name: rfc
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  rfc-metadata:
+    name: rfc-metadata
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: python3 tools/check_rfc_metadata.py

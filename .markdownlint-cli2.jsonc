@@ -2,8 +2,10 @@
   "config": {
     "MD013": false,   // no line-length limit, we do not hard wrap
     "MD024": { "siblings_only": true },
+    "MD025": { "front_matter_title": "" },   // an RFC's front matter title: is not a heading
     "MD033": false,   // inline HTML allowed for tables and details blocks
-    "MD041": false    // RFC front matter comes before the first heading
+    "MD041": false,   // RFC front matter comes before the first heading
+    "MD060": false    // table pipe alignment, cosmetic and pure friction when someone adds a row
   },
   "globs": ["**/*.md"],
   "ignores": ["node_modules/**"]
