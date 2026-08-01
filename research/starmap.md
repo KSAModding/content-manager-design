@@ -136,7 +136,7 @@ Running it on Linux is reported to work, with two obstacles that are not in Star
 - **The game ships as a single file on `linux-x64`,** so `KSA.dll` does not exist on disk, while `LoaderConfig.TryLoadConfig` requires exactly that file. The reported workaround is to split the executable first with [SingleFileExtractor](https://github.com/Droppers/SingleFileExtractor) (`sfextract KSA -o .`), which produces the same DLL layout the Windows build has.
 - **`XDG_SESSION_TYPE=x11` is reported to be required**, which points at the game's own renderer under Wayland rather than at the loader.
 
-This has been reported at: https://forums.ahwoo.com/threads/artemis-oem-loader.857/#post-4328
+This has been reported at: <https://forums.ahwoo.com/threads/artemis-oem-loader.857/#post-4328>
 
 ## Implications for a mod manager
 
