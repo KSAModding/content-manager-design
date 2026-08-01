@@ -2,7 +2,22 @@
 
 Design process and specification for a Kitten Space Agency mod manager and mod index.
 
-Nothing is decided yet. The charter, the RFC process, and the first proposals are being written.
+## Where to start
+
+- [CHARTER.md](CHARTER.md) for the scope, the (non-)goals, and how decisions are made.
+- [Pre-RFC discussions](https://github.com/KSAModding/mod-manager-design/discussions/categories/pre-rfc) for what is currently being argued about.
+- `research/` Read this before proposing anything.
+- [DECISIONS.md](DECISIONS.md) for what has been settled so far.
+- [CONTRIBUTING.md](CONTRIBUTING.md) if you want to write something.
+
+## Layout
+
+| | |
+|---|---|
+| `rfcs/` | Proposals and the decisions they became. Never edited after acceptance. |
+| `spec/` | The living specification, written from accepted RFCs. |
+| `research/` | Research |
+| `tools/` | Small scripts to keep the repository clean. |
 
 ## License
 
