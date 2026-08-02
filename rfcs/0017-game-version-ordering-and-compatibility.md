@@ -1,15 +1,15 @@
 ---
-rfc: 0000
+rfc: 0017
 title: Game version ordering and compatibility
 status: Draft
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-08-02
-discussion:
+discussion: https://github.com/KSAModding/mod-manager-design/pull/17
 supersedes: []
 superseded-by: []
 ---
 
-# RFC 0000: Game version ordering and compatibility
+# RFC 0017: Game version ordering and compatibility
 
 ## Summary
 
