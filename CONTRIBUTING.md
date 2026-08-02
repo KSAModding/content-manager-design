@@ -11,18 +11,22 @@ You do not need to write code to be useful here.
 
 ## Writing an RFC
 
-Copy `rfcs/0000-template.md` to `rfcs/NNNN-short-title.md`, take the next free number, and open a pull request. Numbers are allocated when the pull request opens; if two land at once, whoever merges second renames.
+Copy `rfcs/0000-template.md` to `rfcs/0000-short-title.md`, fill it in, and open a pull request.
+
+**An RFC's number is the number of the pull request that introduces it.** Leave it at `0000` in the filename and the front matter until the pull request exists, then rename the file and set `rfc:` to match, in a second commit. Nobody has to check what is free, and two proposals opened at the same time cannot collide.
+
+Note that GitHub gives issues, pull requests and discussions numbers from the same sequence, so RFC numbers are sparse. That is fine.
 
 Every RFC starts with front matter:
 
 ```yaml
 ---
-rfc: 0002
-title: Mod metadata format
+rfc: 0017
+title: Game version ordering and compatibility
 status: Draft
 authors: ["@your-handle"]
-created: 2026-08-01
-discussion: https://github.com/KSAModding/mod-manager-design/discussions/12
+created: 2026-08-02
+discussion: https://github.com/KSAModding/mod-manager-design/pull/17
 supersedes: []
 superseded-by: []
 ---
