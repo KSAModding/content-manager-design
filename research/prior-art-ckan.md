@@ -1,6 +1,6 @@
 # CKAN, as extended for KSA
 
-Between 2026-06-30 and mid-July 2026, KSA support was built into [a fork of CKAN](https://github.com/KSAModding/CKAN-KSA) in https://github.com/KSAModding , the mod manager that has served Kerbal Space Program for over a decade.
+Between 2026-06-30 and mid-July 2026, KSA support was built into [a fork of CKAN](https://github.com/KSAModding/CKAN-KSA) in <https://github.com/KSAModding> , the mod manager that has served Kerbal Space Program for over a decade.
 
 It does work and an upstream pull request was created.
 
@@ -14,11 +14,11 @@ Fork: [KSAModding/CKAN-KSA](https://github.com/KSAModding/CKAN-KSA). Issue and P
 
 Related Forks are also:
 
-- https://github.com/KSAModding/KSA-NetKAN
-- https://github.com/KSAModding/KSA-CKAN-meta
-- https://github.com/KSAModding/NetKAN-Infra
-- https://github.com/KSAModding/NetKAN-status
-- https://github.com/KSAModding/xKAN-meta_testing
+- <https://github.com/KSAModding/KSA-NetKAN>
+- <https://github.com/KSAModding/KSA-CKAN-meta>
+- <https://github.com/KSAModding/NetKAN-Infra>
+- <https://github.com/KSAModding/NetKAN-status>
+- <https://github.com/KSAModding/xKAN-meta_testing>
 
 ## The shape / architecture of CKAN
 
@@ -80,7 +80,7 @@ Each of these is a KSA fact that any manager hits, with the fork's answer as one
 
 The metadata side needs no CKAN client and no permission:
 
-- Full index as one tarball: `https://github.com/KSAModding/KSA-CKAN-meta/archive/main.tar.gz`
+- Full index as one tarball: `<https://github.com/KSAModding/KSA-CKAN-meta/archive/main.tar.gz>`
 - One JSON file per mod release under `KSA-CKAN-meta/<Mod>/`, format documented in the fork's `Spec.md`
 - Game version list, self-updating hourly: `https://raw.githubusercontent.com/KSAModding/KSA-CKAN-meta/main/builds.json`
 
