@@ -3,6 +3,7 @@
 """Check RFC front matter, and that accepted RFCs are recorded in DECISIONS.md.
 """
 
+import os
 import re
 import sys
 from pathlib import Path
@@ -15,6 +16,15 @@ REQUIRED = ("rfc", "title", "status", "authors", "created")
 STATUSES = ("Draft", "Proposed", "FCP", "Accepted", "Rejected", "Postponed", "Superseded")
 FILENAME = re.compile(r"^(\d{4})-[a-z0-9-]+\.md$")
 ISO_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+def pull_request_is_ready():
+    """True only when we know we are on a pull request that is not a draft.
+
+    The workflow passes GitHub's own draft flag through PR_IS_DRAFT. On a push,
+    or when run by hand, the variable is empty and this rule stays off.
+    """
+    return os.environ.get("PR_IS_DRAFT", "") == "false"
 
 
 def front_matter(text):
@@ -74,6 +84,8 @@ def main():
             errors.append(f"{path}: status '{status}' is not one of {', '.join(STATUSES)}")
         elif status == "Accepted" and match.group(1) not in decisions:
             errors.append(f"{path}: accepted, but has no row in DECISIONS.md")
+        elif status == "Draft" and pull_request_is_ready():
+            errors.append(f"{path}: status is Draft, but the pull request is ready for review. Set it to Proposed, or put the pull request back to draft.")
 
         created = fields.get("created", "")
         if created and not ISO_DATE.match(created):
