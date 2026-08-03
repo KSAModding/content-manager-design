@@ -1,6 +1,6 @@
 # What StarMap is
 
-Verified against StarMap `0.4.5` (commit `9c05b6c`, 2026-04-10) and game build **2026.8.3.5117**.
+Verified against StarMap `0.4.6` (commit `57846b2`, released 2026-08-02) and game build **2026.8.3.5117**.
 
 StarMap is the loader every KSA code mod depends on. It is MIT licensed, written by @KlaasWhite .
 
@@ -10,7 +10,7 @@ The game has no concept of a code mod. `mod.toml` declares assets, systems, font
 
 ## It does not launch the game, it hosts it
 
-StarMap installs separately from the game, by default into `Program Files\StarMap` via an Inno Setup installer, and keeps a `StarMapConfig.json` next to its own executable:
+StarMap is a single executable. It installs separately from the game, by default into `Program Files\StarMap` via an Inno Setup installer (whose creation is broken in the `0.4.6` release), and keeps a `StarMapConfig.json` next to itself:
 
 ```json
 { "GameLocation": "...", "RepositoryLocation": "", "GameArguments": [] }
@@ -18,14 +18,14 @@ StarMap installs separately from the game, by default into `Program Files\StarMa
 
 `GameLocation` may point at the game folder or directly at `KSA.dll`; `LoaderConfig.TryLoadConfig` appends `KSA.dll` when it is given a directory, and refuses to start if the file is not there. On first run the file does not exist, so StarMap writes a template and exits.
 
-The sequence in `Program.SoleModeInner` and `GameSurveyer.TryLoadCoreAndGame` is:
+The sequence in `Program.Main` and `GameSurveyer.TryLoadCoreAndGame` is:
 
 1. load `0Harmony.dll` into the default load context,
-2. create a `GameAssemblyLoadContext` rooted at the game's dependency graph,
+2. create a `CoreAssemblyLoadContext` that resolves against the game's dependency graph first and StarMap's own second,
 3. load `StarMap.Core.dll` into that context and instantiate it,
 4. load `KSA.dll` into the same context,
 5. set the process working directory to the game folder, and set the `APP_CONTEXT_BASE_DIRECTORY` AppContext slot to the same path,
-6. call `StarMapCore.Init`, which discovers and loads mods and then runs `Harmony.PatchAll`,
+6. call `StarMapCore.Init`, which applies the instance-path patch, discovers and loads mods, and runs `Harmony.PatchAll`,
 7. invoke the game assembly's entry point in-process.
 
 `Program.Main` in the game sets `Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory)` as its very first statement, and that property reads the `APP_CONTEXT_BASE_DIRECTORY` slot. Without StarMap overwriting it, the game would reset its working directory to StarMap's own install folder and every relative `Content` path would resolve into `Program Files\StarMap`.
@@ -35,38 +35,38 @@ Consequences for anything that launches the game:
 - The running process is `StarMap.exe`. Process-name based detection of "is the game running" needs to know that.
 - Mods are already loaded and Harmony patches already applied before the game's `Main` gets control.
 
-## Two modes, selected by argument count
+## Instance paths
 
-`Program.Main`:
+`DocumentsPathPatches` reads an override from, in this order:
 
-- **no arguments**: solo mode. Reads `StarMapConfig.json` and runs the sequence above.
-- **one or more arguments**: loader mode. The first argument is treated as a named pipe name, and StarMap connects to a supervising process to ask it where the game is (`GameFacade.Connect`).
+1. the CLI flag `-InstancePath <path>` (matched case-insensitively against the raw process arguments),
+2. the environment variable `STARMAP_INSTANCE_PATH`.
 
-So passing any argument to `StarMap.exe` puts it into a mode that expects a pipe server that does not exist, and it hangs rather than starting the game. **Arguments intended for the game go into `GameArguments` in `StarMapConfig.json`**, which `GameSurveyer.RunGame` forwards to the game's entry point. In loader mode the game always receives an empty argument array.
+If either is set, a Harmony prefix is applied to the getter of `KSA.Constants.DocumentsFolderPath`, from `ModLoader.Init`, before mod discovery and before the game's entry point runs. That property is public and is the root of every user-writable path the game has: `ModLibrary.LocalModsFolderPath` and `LocalManifestPath`, plus saves, settings, vehicles, layouts, languages, screenshots, logs and crash dumps. Overriding it moves an entire profile, not just the mods.
+
+This is the only mechanism by which two KSA setups can hold different mod sets. Properties that follow from how it works:
+
+- **A mod that does not go through `Constants.DocumentsFolderPath` escapes it** and keeps writing to the shared location.
+- **A manager can drive it without touching StarMap's config**: set `STARMAP_INSTANCE_PATH` on the spawned process, or pass `-InstancePath`, per launch.
+- A path that does not exist is only partially created: `ModLibrary.CheckDirectories` creates the root folder and the mods folder when they are missing, but the other consumers of the property have not been checked here.
+
+## StarMap can restart the game to load newly enabled mods
+
+A Harmony prefix on `ModLibrary.PrepareAll` checks whether the game discovered new mods this session and the user enabled them. If so, StarMap shows a confirm dialog; on confirm it spawns a fresh `StarMap.exe --restarted` from its own install folder and exits the current process. The file operations for a mod change happen in the new process, before mods load, which is why no separate supervising process is needed.
+
+One coupling to note: the confirm dialog renders through the game's own internals (`Program.GetRenderer`, the ImGui backend, GLFW polling). That works today and is exactly the kind of private surface a game refactor can rename without notice, same category as the two private GUI hook targets below.
 
 ## It reuses the game's own mod discovery
 
 `ModLoader.PrepareMods` calls `ModLibrary.PrepareManifest`, then walks `ModLibrary.Manifest.Mods` in order and skips every entry whose `Enabled` is false. For each remaining entry, `RuntimeMod.TryCreateMod` looks for `Content/<id>/mod.toml` and then `ModLibrary.LocalModsFolderPath/<id>/mod.toml`.
 
-- **StarMap adds no mod location.** It looks exactly where the game looks.
+- **StarMap adds no mod location.** It looks exactly where the game looks. With an instance path set, both StarMap and the game resolve through the patched `Constants.DocumentsFolderPath`, so they stay consistent.
 - **StarMap does not change enable semantics.** `manifest.toml` still decides, and the game still owns that file.
-- **StarMap cannot be pointed at a different mods folder.** `LocalModsFolderPath` is the game's user-global path, and `Content` is relative to the working directory that has just been set to the game folder. `RepositoryLocation` in the config sounds like it might help and does not; see below.
+- `RepositoryLocation` in the config sounds like it might point mods elsewhere and does not; it is referenced nowhere and is dead configuration.
 
 A mod without a matching `<EntryAssembly>.dll` is skipped without an error, which is how part, planet and config mods pass through untouched.
 
 One ordering detail: because StarMap calls `ModLibrary.PrepareManifest` before the game's `Main` runs, the manifest reconciliation described in `research/ksa-mod-loading.md` happens earlier than usual, and then again when the game does its own startup.
-
-## An open pull request would add instance folders
-
-StarMapLoader/StarMap#80 (opened 2026-07-30, no review yet) adds a `-InstancePath` command line flag and an `INSTANCE_PATH` environment variable that redirect the game to a chosen folder.
-
-The mechanism is a Harmony prefix on the getter of `KSA.Constants.DocumentsFolderPath`, applied from `ModLoader.Init` before mod discovery and before the game's entry point runs. That property is public and is the root of every user-writable path the game has: `ModLibrary.LocalModsFolderPath` and `LocalManifestPath`, plus saves, settings, vehicles, layouts, languages, screenshots, logs and crash dumps. Overriding it moves an entire profile, not just the mods.
-
-If it lands it is the first mechanism by which two KSA setups can hold different mod sets. One property follows from how it works:
-
-- **A mod that does not go through `Constants.DocumentsFolderPath` escapes it** and keeps writing to the shared location. The pull request says as much.
-
-The pull request states that a non-existent path will crash. `ModLibrary.CheckDirectories` creates both the root folder and the mods folder when they are missing. Per the pull request creator's testing, the `manifest.toml`, `\mods`, `settings.toml`, `\saves`, `\vehicles`, `\logs`, `\crashdumps`, `\HUDLayouts`, etc. files and folders will be automatically created by the game if they do not exist within the instance.
 
 ## The `[StarMap]` section of `mod.toml`
 
@@ -112,24 +112,15 @@ Every one of these patch targets still exists in build 2026.8.3.5117 with a matc
 
 ## What StarMap does not do
 
-It has no download, index, version or uninstall capability of any kind, and no user interface.
+It has no download, index, version or uninstall capability of any kind, and no mod-management UI in any release.
 
-The pieces that look like it might are all inert:
-
-- `StarMap.Launcher` is a stub. Its `Main` prints "Currently WIP, please use the standalone version" and returns; `ModRepository`, `LoaderFacade` and `GameProcessSupervisor` are entirely commented out, and `ModDownloader.DownloadMod` returns `true` without doing anything.
-- `RepositoryLocation` in `StarMapConfig.json` is referenced only inside a commented-out line. It is dead configuration.
-- `StarMap.Core/Legacy/ModManagerScreen.cs` is a fully commented-out console mod manager.
-- `StarMap.Types/Proto/IPC.proto` defines a complete protocol for a two-process design, including browsing available mods, mod details with versions and download locations, and applying a set of mod changes. It is implemented on the loader side and stubbed on the supervising side.
-
-That protocol is the shape of the plan in the README: a Factorio-style in-game mod browser, where selecting mods restarts the game through a supervising process that applies the changes in between. The intended index is described as "just an index of mods, versions and download locations", with hosting left elsewhere. A separate `StarMapLoader/StarMap-Index` repository exists.
-
-**This is the overlap that has to be talked about rather than discovered.** The author has stated he intends to continue with these plans. Nothing in the current code competes with a mod manager; the plan does.
+The plans for one exist: a separate `StarMapLoader/StarMap-Index` repository, and the author has shown a working in-game mod manager on a local feature branch. How that relates to a community mod manager is exactly the boundary question tracked in [discussion #20](https://github.com/KSAModding/mod-manager-design/discussions/20); the technical shape it would build on is the loader's own pattern for applying mod changes, file operations followed by a self-restart, not a second supervising process.
 
 ## Packaged for Windows, but the payload is portable to Linux
 
-The release workflow publishes `-r win-x64 --self-contained false` and ships an Inno Setup installer. Releases carry two zips, `StarMapStandalone-<version>.zip` (solo mode, the one a manager wants) and `StarMapLauncher-<version>.zip` (the WIP two-process build); in both, the published executable is renamed to `StarMap.exe`. `StarMap.API` is published to NuGet, versioned separately and only when the API actually changed.
+A release carries a single `StarMap-<version>.zip`, published `-r win-x64 --self-contained false`, with the executable named `StarMap.exe`.
 
-That looks Windows-only and is not. In the shipped `0.4.5` build, `StarMap.Loader.runtimeconfig.json` is framework dependent against `Microsoft.NETCore.App 10.0.0` with no runtime pinned, and `StarMap.Loader.deps.json` carries no native and no RID-specific assets at all. Every assembly in the zip is portable managed code, and the only Windows artifact is the renamed apphost. `dotnet StarMap.Loader.dll` therefore runs the same build anywhere a .NET 10 runtime exists.
+That looks Windows-only and is not. In the shipped `0.4.6` build, `StarMap.runtimeconfig.json` is framework dependent against `Microsoft.NETCore.App 10.0.0` with no runtime pinned, and `StarMap.deps.json` carries no native and no RID-specific assets at all. Every assembly in the zip is portable managed code, and the only Windows artifact is the apphost. `dotnet StarMap.dll` therefore runs the same build anywhere a .NET 10 runtime exists.
 
 Running it on Linux is reported to work, with two obstacles that are not in StarMap's own code:
 
@@ -138,8 +129,11 @@ Running it on Linux is reported to work, with two obstacles that are not in Star
 
 This has been reported at: <https://forums.ahwoo.com/threads/artemis-oem-loader.857/#post-4328>
 
+The author has said he is planning a dedicated Linux build.
+
 ## Implications for a mod manager
 
 - **The `[StarMap]` section is the only dependency data that exists.** Any metadata format either reads it or duplicates it, and duplicating it means it can disagree with what the loader actually does.
-- **Version constraints have to come from somewhere else.** The loader has no version concept, so "this mod needs StarMap 0.4.5 or newer" can only be expressed and enforced by a manager.
-- **The plans overlap and the boundary is a decision, not a fact.** How deep the integration between manager and loader should go is one of the first things this repository has to settle, and it cannot be settled without the loader's author.
+- **Version constraints have to come from somewhere else.** The loader has no version concept, so "this mod needs StarMap 0.4.6 or newer" can only be expressed and enforced by a manager.
+- **Instance paths are a launch-time contract a manager can use**: set `STARMAP_INSTANCE_PATH` or pass `-InstancePath` when spawning `StarMap.exe`, and the whole profile follows. What an instance *is* (its folders, its metadata, who defines it) is still undecided, and is part of [discussion #20](https://github.com/KSAModding/mod-manager-design/discussions/20).
+- **There is no supervising-process protocol to plug into.** The loader's own pattern for applying mod changes is file operations followed by a self-restart. A manager that wants deeper integration than "write files, then launch" needs to talk to the author, and the boundary is a decision, not a fact.
