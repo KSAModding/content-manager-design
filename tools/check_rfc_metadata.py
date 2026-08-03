@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: MIT
-"""Check RFC front matter, and that accepted RFCs are recorded in DECISIONS.md.
+"""Check RFC front matter, that accepted RFCs are recorded in DECISIONS.md,
+and that no in-progress RFC sits on main.
 """
 
 import os
@@ -16,6 +17,11 @@ REQUIRED = ("rfc", "title", "status", "authors", "created")
 STATUSES = ("Draft", "Proposed", "FCP", "Accepted", "Rejected", "Postponed", "Superseded")
 FILENAME = re.compile(r"^(\d{4})-[a-z0-9-]+\.md$")
 ISO_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+def merged_to_main():
+    """True on a push run, which this workflow only triggers for main."""
+    return os.environ.get("GITHUB_EVENT_NAME", "") == "push"
 
 
 def pull_request_is_ready():
@@ -84,6 +90,8 @@ def main():
             errors.append(f"{path}: status '{status}' is not one of {', '.join(STATUSES)}")
         elif status == "Accepted" and match.group(1) not in decisions:
             errors.append(f"{path}: accepted, but has no row in DECISIONS.md")
+        elif status in ("Draft", "Proposed", "FCP") and merged_to_main():
+            errors.append(f"{path}: on main with in-progress status '{status}'. An RFC merges only once its status is terminal.")
         elif status == "Draft" and pull_request_is_ready():
             errors.append(f"{path}: status is Draft, but the pull request is ready for review. Set it to Proposed, or put the pull request back to draft.")
 

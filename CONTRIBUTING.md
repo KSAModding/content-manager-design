@@ -55,6 +55,7 @@ npx lychee --offline "**/*.md"
 RFC front matter is validated separately by `tools/check_rfc_metadata.py`.
 A pull request that touches `rfcs/` also has to be approved by at least two stewards before its `rfc-approvals` check passes.
 That check, `tools/check_rfc_approvals.py`, reads the steward list from the "Who decides" section of [CHARTER.md](CHARTER.md), so that section is the single place the list is maintained.
+The same check keeps the merge blocked while an approved RFC still says `Proposed`: when review has converged, set the status to a terminal one and add the DECISIONS.md row before collecting the final approvals, since a later push dismisses the ones already given.
 
 ## Licensing your contribution
 
