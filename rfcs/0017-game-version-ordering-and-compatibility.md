@@ -1,7 +1,7 @@
 ---
 rfc: 0017
 title: Game version ordering and compatibility
-status: Proposed
+status: Accepted
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-08-02
 discussion: https://github.com/KSAModding/mod-manager-design/pull/17
