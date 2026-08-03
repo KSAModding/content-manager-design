@@ -1,15 +1,15 @@
 ---
-rfc: 0000
+rfc: 0025
 title: "Scope: a content manager for KSA"
 status: Proposed
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-08-03
-discussion: https://github.com/KSAModding/mod-manager-design/discussions/13
+discussion: https://github.com/KSAModding/mod-manager-design/pull/25
 supersedes: []
 superseded-by: []
 ---
 
-# RFC 0000: Scope: a content manager for KSA
+# RFC 0025: Scope: a content manager for KSA
 
 ## Summary
 
