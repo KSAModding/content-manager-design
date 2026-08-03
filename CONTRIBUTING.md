@@ -53,6 +53,8 @@ npx lychee --offline "**/*.md"
 ```
 
 RFC front matter is validated separately by `tools/check_rfc_metadata.py`.
+A pull request that touches `rfcs/` also has to be approved by at least two stewards before its `rfc-approvals` check passes.
+That check, `tools/check_rfc_approvals.py`, reads the steward list from the "Who decides" section of [CHARTER.md](CHARTER.md), so that section is the single place the list is maintained.
 
 ## Licensing your contribution
 

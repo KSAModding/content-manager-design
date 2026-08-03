@@ -27,7 +27,13 @@ They are written up properly under `research/`, but briefly: mods live in the si
 
 ## Who decides
 
-Stewards are the people who can merge RFCs. Right now that is @Maximilian-Nesslauer and @averageksp, and others join by being nominated in a discussion.
+Stewards are the people who can merge RFCs. The current stewards:
+
+- @Maximilian-Nesslauer
+- @averageksp
+- @MrJeranimo
+
+Others join by being nominated in a discussion.
 
 An RFC is accepted once two stewards have approved it and no objection is left unresolved. That does not make stewards the only voices that matter, they are just the ones who have to close the loop.
 
