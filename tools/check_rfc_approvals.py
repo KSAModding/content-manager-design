@@ -14,10 +14,13 @@ import sys
 import urllib.request
 from pathlib import Path
 
+from check_rfc_metadata import front_matter
+
 CHARTER = Path("CHARTER.md")
 TEMPLATE = "0000-template.md"
 REQUIRED_APPROVALS = 2
 STEWARD_LINE = re.compile(r"^- @([A-Za-z0-9-]+)", re.MULTILINE)
+TERMINAL_STATUSES = ("Accepted", "Rejected", "Postponed", "Superseded")
 
 
 def api(path, token):
@@ -37,6 +40,11 @@ def paged(path, token):
         if len(batch) < 100:
             return
         page += 1
+
+
+def status_of(path):
+    fields = front_matter(path.read_text(encoding="utf-8"))
+    return (fields or {}).get("status", "")
 
 
 def stewards_from_charter():
@@ -94,12 +102,21 @@ def main():
 
     print(f"RFC files changed: {', '.join(rfc_files)}")
     print(f"steward approvals: {len(approved)} of {REQUIRED_APPROVALS} ({', '.join(approved) or 'none'})")
-    if len(approved) >= REQUIRED_APPROVALS:
-        return 0
 
-    missing = sorted(set(stewards) - set(approved) - {author})
-    print(f"needs approval from {REQUIRED_APPROVALS - len(approved)} more of: {', '.join(missing)}")
-    return 1
+    if len(approved) < REQUIRED_APPROVALS:
+        missing = sorted(set(stewards) - set(approved) - {author})
+        print(f"needs approval from {REQUIRED_APPROVALS - len(approved)} more of: {', '.join(missing)}")
+        return 1
+
+    # Enough approvals. The merge may still not land while the decision is unrecorded,
+    # so an approved RFC cannot reach main with an in-progress status again.
+    unrecorded = [f for f in rfc_files if Path(f).is_file() and status_of(Path(f)) not in TERMINAL_STATUSES]
+    if unrecorded:
+        print(f"approved by {REQUIRED_APPROVALS} stewards, but the decision is not recorded yet: {', '.join(unrecorded)}")
+        print("set the status to Accepted (or another terminal status), add the DECISIONS.md row for an acceptance, and collect fresh approvals if the push dismissed them.")
+        return 1
+
+    return 0
 
 
 if __name__ == "__main__":
