@@ -5,6 +5,9 @@ on:
     # ready_for_review is not in the default set, and it is the one moment
     # the Draft-status rule below exists to catch.
     types: [opened, synchronize, reopened, ready_for_review]
+  # Reviews arrive after the last push, so the approval count has to re-run when one is submitted or dismissed.
+  pull_request_review:
+    types: [submitted, dismissed]
   push:
     branches: [main]
 
@@ -14,9 +17,25 @@ permissions:
 jobs:
   rfc-metadata:
     name: rfc-metadata
+    if: github.event_name != 'pull_request_review'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
       - run: python3 tools/check_rfc_metadata.py
         env:
+          PR_IS_DRAFT: ${{ github.event.pull_request.draft }}
+
+  rfc-approvals:
+    name: rfc-approvals
+    if: github.event_name != 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v7
+      - run: python3 tools/check_rfc_approvals.py
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_IS_DRAFT: ${{ github.event.pull_request.draft }}
