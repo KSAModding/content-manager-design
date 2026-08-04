@@ -7,7 +7,7 @@ body:
       value: |
         This issue tracks the RFC. The RFC text itself comes as a pull request adding a file under `rfcs/`.
 
-        If the idea is still half-formed, open a [Pre-RFC discussion](https://github.com/KSAModding/mod-manager-design/discussions/categories/pre-rfc) instead. That is the cheaper path and most proposals should start there.
+        If the idea is still half-formed, open a [Pre-RFC discussion](https://github.com/KSAModding/content-manager-design/discussions/categories/pre-rfc) instead. That is the cheaper path and most proposals should start there.
   - type: input
     id: title
     attributes:

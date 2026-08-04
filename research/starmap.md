@@ -114,7 +114,7 @@ Every one of these patch targets still exists in build 2026.8.3.5117 with a matc
 
 It has no download, index, version or uninstall capability of any kind, and no mod-management UI in any release.
 
-The plans for one exist: a separate `StarMapLoader/StarMap-Index` repository, and the author has shown a working in-game mod manager on a local feature branch. How that relates to a community mod manager is exactly the boundary question tracked in [discussion #20](https://github.com/KSAModding/mod-manager-design/discussions/20); the technical shape it would build on is the loader's own pattern for applying mod changes, file operations followed by a self-restart, not a second supervising process.
+The plans for one exist: a separate `StarMapLoader/StarMap-Index` repository, and the author has shown a working in-game mod manager on a local feature branch. How that relates to a community mod manager is exactly the boundary question tracked in [discussion #20](https://github.com/KSAModding/content-manager-design/discussions/20); the technical shape it would build on is the loader's own pattern for applying mod changes, file operations followed by a self-restart, not a second supervising process.
 
 ## Packaged for Windows, but the payload is portable to Linux
 
@@ -135,5 +135,5 @@ The author has said he is planning a dedicated Linux build.
 
 - **The `[StarMap]` section is the only dependency data that exists.** Any metadata format either reads it or duplicates it, and duplicating it means it can disagree with what the loader actually does.
 - **Version constraints have to come from somewhere else.** The loader has no version concept, so "this mod needs StarMap 0.4.6 or newer" can only be expressed and enforced by a manager.
-- **Instance paths are a launch-time contract a manager can use**: set `STARMAP_INSTANCE_PATH` or pass `-InstancePath` when spawning `StarMap.exe`, and the whole profile follows. What an instance *is* (its folders, its metadata, who defines it) is still undecided, and is part of [discussion #20](https://github.com/KSAModding/mod-manager-design/discussions/20).
+- **Instance paths are a launch-time contract a manager can use**: set `STARMAP_INSTANCE_PATH` or pass `-InstancePath` when spawning `StarMap.exe`, and the whole profile follows. What an instance *is* (its folders, its metadata, who defines it) is still undecided, and is part of [discussion #20](https://github.com/KSAModding/content-manager-design/discussions/20).
 - **There is no supervising-process protocol to plug into.** The loader's own pattern for applying mod changes is file operations followed by a self-restart. A manager that wants deeper integration than "write files, then launch" needs to talk to the author, and the boundary is a decision, not a fact.

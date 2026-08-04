@@ -2,23 +2,16 @@
 
 ## What we are designing
 
-- A metadata format describing a mod, its releases, its dependencies, and what it is compatible with.
+- A metadata format describing published content, a mod, mod pack, vehicle, or save, its releases, its dependencies, and what it is compatible with.
 - An index: how that metadata is hosted, distributed, and kept current as the game moves.
 - Install semantics: what a client may touch, what it owns, and what happens on upgrade and uninstall.
-- The workflow by which a mod author gets listed.
+- The workflow by which a content author gets listed.
 
-Something you can actually install mods with should come out of this. The design of that client belongs here, its source will live in its own repository.
+Something you can actually install content with should come out of this. The design of that client belongs here, its source lives in [Borea](https://github.com/KSAModding/Borea).
+
+[RFC 0025](rfcs/0025-scope.md) settled how far the client reaches, published content generally with mods and mod packs first, and that StarMap stays an external dependency; the exact manager/loader boundary is still an open decision.
 
 Anything not on that list is out of scope until an RFC puts it there.
-
-## Open questions about that scope
-
-None of the following is settled. They are the first things we need to decide, and they are listed here mainly so nobody assumes we have answered them already.
-
-- **How far does the client reach?** Mods only, or also profiles, multiple game installs, mod packs etc.?
-- **What is its relationship to the loader?** Code mods need StarMap to run at all today. CKAN handled that by indexing StarMap as an ordinary mod and swapping in its executable at launch, which works, but it still leaves the user to work out for themselves that a code mod without a functioning loader silently does nothing, and we have watched that go wrong. A tighter integration between mod loading and mod managing should be considered, particularly since the StarMap author is in this organisation.
-
-Each of these gets an RFC.
 
 ## Constraints we did not choose
 

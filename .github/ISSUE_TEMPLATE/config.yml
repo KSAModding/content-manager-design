@@ -1,10 +1,10 @@
 blank_issues_enabled: false
 contact_links:
   - name: Pre-RFC discussion
-    url: https://github.com/KSAModding/mod-manager-design/discussions/categories/pre-rfc
+    url: https://github.com/KSAModding/content-manager-design/discussions/categories/pre-rfc
     about: Half-formed ideas belong here first. Cheaper than an issue, and no commitment to write anything up.
   - name: RFC discussion threads
-    url: https://github.com/KSAModding/mod-manager-design/discussions/categories/rfc-discussion
+    url: https://github.com/KSAModding/content-manager-design/discussions/categories/rfc-discussion
     about: One thread per RFC. Argue here, not in the pull request diff.
   - name: KSA Modding Society Discord
     url: https://discord.gg/KthZSZHSZ

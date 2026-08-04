@@ -4,8 +4,8 @@ You do not need to write code to be useful here.
 
 ## Where to start
 
-- **An idea, not yet a proposal:** open a thread in [Pre-RFC](https://github.com/KSAModding/mod-manager-design/discussions/categories/pre-rfc).
-- **A question about how something works:** [Q and A](https://github.com/KSAModding/mod-manager-design/discussions/categories/q-and-a), or file a research task if the answer needs digging.
+- **An idea, not yet a proposal:** open a thread in [Pre-RFC](https://github.com/KSAModding/content-manager-design/discussions/categories/pre-rfc).
+- **A question about how something works:** [Q and A](https://github.com/KSAModding/content-manager-design/discussions/categories/q-and-a), or file a research task if the answer needs digging.
 - **Something specific and small:** open an issue. The forms will route it.
 - **A proposal:** write an RFC.
 
@@ -26,7 +26,7 @@ title: Game version ordering and compatibility
 status: Draft
 authors: ["@your-handle"]
 created: 2026-08-02
-discussion: https://github.com/KSAModding/mod-manager-design/pull/17
+discussion: https://github.com/KSAModding/content-manager-design/pull/17
 supersedes: []
 superseded-by: []
 ---

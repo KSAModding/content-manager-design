@@ -1,11 +1,11 @@
-# mod-manager-design
+# content-manager-design
 
-Design process and specification for a Kitten Space Agency mod manager and mod index.
+Design process and specification for a Kitten Space Agency content manager and content index.
 
 ## Where to start
 
 - [CHARTER.md](CHARTER.md) for the scope, the (non-)goals, and how decisions are made.
-- [Pre-RFC discussions](https://github.com/KSAModding/mod-manager-design/discussions/categories/pre-rfc) for what is currently being argued about.
+- [Pre-RFC discussions](https://github.com/KSAModding/content-manager-design/discussions/categories/pre-rfc) for what is currently being argued about.
 - `research/` Read this before proposing anything.
 - [DECISIONS.md](DECISIONS.md) for what has been settled so far.
 - [CONTRIBUTING.md](CONTRIBUTING.md) if you want to write something.
@@ -23,7 +23,7 @@ Design process and specification for a Kitten Space Agency mod manager and mod i
 
 Documentation and specification text is licensed under [CC BY 4.0](LICENSE).
 That means everything under `rfcs/`, `spec/`, and `research/`, plus the Markdown files at the repository root.
-Attribute as "KSA Modding, mod-manager-design" with a link to this repository.
+Attribute as "KSA Modding, content-manager-design" with a link to this repository.
 
 Code, example metadata, schemas, and configuration is licensed under [MIT](LICENSE-MIT).
 That means everything under `.github/`, `tools/`, and `examples/`, plus any file carrying an `SPDX-License-Identifier: MIT` header.

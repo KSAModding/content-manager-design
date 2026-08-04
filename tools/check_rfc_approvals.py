@@ -60,7 +60,7 @@ def stewards_from_charter():
 
 def main():
     token = os.environ.get("GITHUB_TOKEN", "")
-    repo = os.environ.get("GITHUB_REPOSITORY", "KSAModding/mod-manager-design")
+    repo = os.environ.get("GITHUB_REPOSITORY", "KSAModding/content-manager-design")
     number = os.environ.get("PR_NUMBER", "")
     if not token or not number:
         print("GITHUB_TOKEN and PR_NUMBER are required")
