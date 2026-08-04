@@ -1,7 +1,7 @@
 ---
 rfc: 0025
 title: "Scope: a content manager for KSA"
-status: Proposed
+status: Accepted
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-08-03
 discussion: https://github.com/KSAModding/mod-manager-design/pull/25
