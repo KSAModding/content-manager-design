@@ -25,6 +25,8 @@ Stewards are the people who can merge RFCs. The current stewards:
 - @Maximilian-Nesslauer
 - @averageksp
 - @MrJeranimo
+- @PlazmaBoltz
+- @KlaasWhite
 
 Others join by being nominated in a discussion.
 

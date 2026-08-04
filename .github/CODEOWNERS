@@ -1,7 +1,7 @@
 # Files that carry decisions need a steward on the review.
 # Everything else can be reviewed by anyone with write access.
 
-/rfcs/        @KSAModding/mod-manager-stewards
-/spec/        @KSAModding/mod-manager-stewards
-/CHARTER.md   @KSAModding/mod-manager-stewards
-/DECISIONS.md @KSAModding/mod-manager-stewards
+/rfcs/        @KSAModding/content-manager-stewards
+/spec/        @KSAModding/content-manager-stewards
+/CHARTER.md   @KSAModding/content-manager-stewards
+/DECISIONS.md @KSAModding/content-manager-stewards
