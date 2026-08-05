@@ -87,6 +87,7 @@ bugtracker = "https://github.com/Maximilian-Nesslauer/KSA-AdvancedFlightComputer
 # Oldest game version known to work, written the way the game displays it.
 # A month is also accepted: game_min = "2026.7"
 # game_max exists too and is optional; above it a client warns instead of blocking.
+# os = ["windows"] names the platforms known to work; absent means no known restriction.
 [compatibility]
 game_min = "2026.8.3.5117"
 
@@ -239,12 +240,13 @@ The `[links]` table:
 | `forums` | yes | The KSA forums thread for this content. Required because the modding rules expect one, it ties the listing to an Ahwoo account, and the index uses it as a tiebreaker in id disputes and as a takedown tripwire (#27). |
 | `repository`, `spacedock`, `bugtracker`, `homepage` | no | Plain links, shown as such. Further keys are allowed and treated the same way. |
 
-The `[compatibility]` table, per [RFC 0017](0017-game-version-ordering-and-compatibility.md):
+The `[compatibility]` table; the game version fields follow [RFC 0017](0017-game-version-ordering-and-compatibility.md):
 
 | Key | Required | Meaning |
 |---|---|---|
 | `game_min` | yes | Oldest game version known to work, written as the game displays it, or as a month such as `2026.7`. |
 | `game_max` | no | Newest tested game version. Absent means no known upper limit, which is the recommended default. |
+| `os` | no | The platforms the content is known to work on, from `windows`, `linux`, `macos`. Absent means no known restriction, which is the right default for portable managed code. New values arrive by RFC. |
 
 The authored file of a mod carries no mod version.
 Versions exist per release and are stamped by tooling; a pack's document carries one because the document is the release.
@@ -338,6 +340,7 @@ Field semantics:
 | `release_status` | `stable`, `testing`, or `dev`. Derived from the host's release flags and the version's pre-release part, so a nightly does not look like a release. |
 | `release_date` | ISO 8601 UTC timestamp of the release on its host. |
 | `game_min`, `game_min_revision` | The authored bound as displayed, plus its resolved revision, so compatibility is evaluable offline with no index lookup (RFC 0017). `game_max` and `game_max_revision` appear when authored. |
+| `os` | The authored platform list current at release time. Absent when unrestricted. |
 | `download.url` | Direct download of the release archive from its own host; the index never hosts files (RFC 0025). |
 | `download.sha256` | Hex SHA-256 of the archive, case-insensitive. Verifies the download and keys caches. |
 | `download.size` | Archive size in bytes. |
@@ -394,6 +397,7 @@ The line taken everywhere in this format is warn, do not block, consistent with 
 - `deprecated` warns and surfaces `superseded_by` when present; it never blocks an install.
 - A dependency or pack member whose id is not listed in the index warns, points at wherever the author says it lives, and lets the user proceed (#27).
 - Game compatibility evaluates per RFC 0017; only incompatible blocks.
+- A platform outside the stated `os` list warns and lets the user proceed: the list states what the author knows works, not everything that can.
 - Metadata a client cannot interpret, including a `spec_version` newer than it implements, renders as an entry in an unknown state; it is never silently dropped.
 
 ### Format evolution
