@@ -1,15 +1,15 @@
 ---
-rfc: 0000
+rfc: 0031
 title: Content metadata format
-status: Draft
+status: Proposed
 authors: ["@Maximilian-Nesslauer", "@MrJeranimo"]
 created: 2026-08-05
-discussion:
+discussion: https://github.com/KSAModding/content-manager-design/pull/31
 supersedes: []
 superseded-by: []
 ---
 
-# RFC 0000: Content metadata format
+# RFC 0031: Content metadata format
 
 ## Summary
 
