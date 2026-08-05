@@ -1,5 +1,5 @@
 ---
-rfc: 0017
+rfc: "0017"
 title: Game version ordering and compatibility
 status: Accepted
 authors: ["@Maximilian-Nesslauer"]

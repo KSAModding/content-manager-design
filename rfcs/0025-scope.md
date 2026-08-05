@@ -1,5 +1,5 @@
 ---
-rfc: 0025
+rfc: "0025"
 title: "Scope: a content manager for KSA"
 status: Accepted
 authors: ["@Maximilian-Nesslauer"]
