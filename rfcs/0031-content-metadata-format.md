@@ -1,5 +1,5 @@
 ---
-rfc: 0031
+rfc: "0031"
 title: Content metadata format
 status: Proposed
 authors: ["@Maximilian-Nesslauer", "@MrJeranimo"]
