@@ -21,7 +21,7 @@ Every RFC starts with front matter:
 
 ```yaml
 ---
-rfc: 0017
+rfc: "0017"
 title: Game version ordering and compatibility
 status: Draft
 authors: ["@your-handle"]
@@ -31,6 +31,8 @@ supersedes: []
 superseded-by: []
 ---
 ```
+
+Keep the quotes around the `rfc` number: unquoted, GitHub's front matter display reads the leading zero as octal and shows `0017` as 15.
 
 `status` is one of `Draft`, `Proposed`, `FCP`, `Accepted`, `Rejected`, `Postponed`, `Superseded`.
 Set it to `Draft` while you are writing and `Proposed` when you want review. The rest of the lifecycle is in [CHARTER.md](CHARTER.md).

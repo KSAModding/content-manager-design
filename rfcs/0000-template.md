@@ -1,5 +1,5 @@
 ---
-rfc: 0000
+rfc: "0000"
 title: Template
 status: Draft
 authors: []
