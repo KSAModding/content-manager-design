@@ -112,6 +112,7 @@ superseded_by = "AdvancedFlightComputerNG"
 ```
 
 Clients then warn and point users at the successor, but never block the install.
+A single broken release can be yanked the same way: it stays in the history, but clients stop offering it.
 
 ### Publishing a mod pack
 
@@ -189,7 +190,7 @@ Rules:
 - The first and last character must be a letter or a digit.
 - Ids compare case-insensitively; the authored casing is preserved for display and on disk.
 - The namespace is global across content types: a mod, a pack, and a loader can never share an id, so every reference to an id stays type-free.
-- Reserved, compared case-insensitively: `Core` (the game ships `Content/Core` and exempts its manifest entry from cleanup in `ModLibrary.PrepareManifest`), and the Windows device names `CON`, `PRN`, `AUX`, `NUL`, `COM1` through `COM9`, `LPT1` through `LPT9`.
+- Reserved, compared case-insensitively against the id up to its first `.`, because Windows treats dotted forms such as `CON.mod` as devices too: `Core` (the game ships `Content/Core` and exempts its manifest entry from cleanup in `ModLibrary.PrepareManifest`), and the Windows device names `CON`, `PRN`, `AUX`, `NUL`, `COM1` through `COM9`, `LPT1` through `LPT9`.
 
 As a regex:
 
@@ -289,8 +290,14 @@ The bounds are authored because they cannot be derived: the `[StarMap]` section 
 | `suggests` | Listed, not selected. |
 | `conflict` | Must not be installed together. Bounds narrow the conflicting range; no bounds means every version conflicts. |
 
-An entry may carry `any_of = ["A", "B", "C"]` in place of `id`, meaning any one of the listed ids satisfies it.
+An entry may carry `any_of` in place of `id`: an array of tables, each with an `id` and optional `min`/`max` bounds of its own, satisfied by any one of them.
 It is valid with kind `required` or `recommends`.
+
+```toml
+[[dependencies]]
+kind = "required"
+any_of = [ { id = "OpenALRouter", min = "2.0.0" }, { id = "ClassicALRouter", min = "1.1.0" } ]
+```
 
 The loader is not repeated under `[[dependencies]]`, and the game is not a dependency; game compatibility has its own section.
 
@@ -298,7 +305,7 @@ An optional **`[install]`** table with a single `root` key overrides the derived
 
 ### The generated release file
 
-One JSON file per release of a watched type, written by tooling at publish time and immutable afterwards.
+One JSON file per release of a watched type, written by tooling at publish time and immutable afterwards, with the single yank exception defined below.
 Nobody hand-writes one: the single hand-written file in the CKAN-for-KSA index was invalid JSON and shipped a wrong install path (see [research/prior-art-ckan.md](../research/prior-art-ckan.md)).
 
 The worked example, continuing the authored file above:
@@ -342,6 +349,7 @@ Field semantics:
 | `game_min`, `game_min_revision` | The authored bound as displayed, plus its resolved revision, so compatibility is evaluable offline with no index lookup (RFC 0017). `game_max` and `game_max_revision` appear when authored. |
 | `os` | The authored platform list current at release time. Absent when unrestricted. |
 | `download.url` | Direct download of the release archive from its own host; the index never hosts files (RFC 0025). |
+| `download.mirrors` | Optional list of further URLs for the same archive, stamped when the watcher finds the identical archive on more than one host. Any source whose bytes match `download.sha256` is acceptable, which also lets clients fall back to caches. |
 | `download.sha256` | Hex SHA-256 of the archive, case-insensitive. Verifies the download and keys caches. |
 | `download.size` | Archive size in bytes. |
 | `download.content_type` | The archive format. Clients must support `application/zip`. |
@@ -350,6 +358,8 @@ Field semantics:
 | `loader` | The authored loader bounds current at release time, with `source`. Absent when the mod runs without one. |
 | `dependencies` | The merged dependency list, each entry carrying `source`. |
 | `changelog` | URL of the release's changelog. |
+| `yanked` | `true` when the author has retracted this release; absent otherwise. The only field a generated file accepts a change to after publish. |
+| `yanked_reason` | Optional free text shown alongside the yank warning. |
 
 The dependency merge: `derived` entries are read per release from the archive's own `mod.toml` (`[[StarMap.ModDependencies]]`, including `Optional`), `authored` entries come from the authored file, and an authored entry replaces the derived entry with the same id.
 Derived entries carry no version bounds because the loader's section has none; authored entries are how bounds get added.
@@ -357,6 +367,18 @@ There is no way to suppress a derived entry, because the loader acts on that dat
 
 Stamping freezes the authored facts current at release time.
 Editing the authored file affects future releases only, which is what keeps old releases correct without re-authoring them.
+
+A version is stamped exactly once.
+If the host's tag for an already stamped version reappears with different bytes, the watcher rejects it and never overwrites; how that gets flagged is the index's business (#27).
+The author's way forward is a new version, or a yank of the broken one.
+
+A published release can be retracted but not edited.
+Setting `yanked = true`, with an optional `yanked_reason`, is the only change a generated file accepts after publish; who may set it is part of the index's publishing flow (#27).
+A yank is the author's statement about one build, distinct from `deprecated`, which covers the whole listing, and from an index-side takedown, which is not the author's voice at all.
+
+What `download.sha256` does and does not promise: a client that verifies it gets exactly the bytes the watcher stamped, so an archive swapped on its host after stamping fails verification instead of installing.
+It does not say who built the archive, and it does not help when the host was already compromised at stamp time.
+Signatures are deliberately out of `spec_version = 1`: they need a key story, who holds keys, how they rotate, what a client does on a mismatch, and that is its own decision, named under future possibilities.
 
 For `type = "mod-loader"` the `install` object is absent: a loader installs outside the game's mods folder by its own mechanism, and how a client performs that is client-defined until the manager/loader boundary (#20) settles it.
 
@@ -398,6 +420,7 @@ The line taken everywhere in this format is warn, do not block, consistent with 
 - A dependency or pack member whose id is not listed in the index warns, points at wherever the author says it lives, and lets the user proceed (#27).
 - Game compatibility evaluates per RFC 0017; only incompatible blocks.
 - A platform outside the stated `os` list warns and lets the user proceed: the list states what the author knows works, not everything that can.
+- A yanked release is not offered for new installs or updates; an already installed copy stays untouched and shows the reason. A pack pinning a yanked version warns and lets the user proceed.
 - Metadata a client cannot interpret, including a `spec_version` newer than it implements, renders as an entry in an unknown state; it is never silently dropped.
 
 ### Format evolution
@@ -452,3 +475,4 @@ This format reads it as the derived baseline instead of duplicating it, so the m
 
 - New content types by RFC, cheap by construction: the required `type` field and the shared core were designed for exactly that (RFC 0025).
 - A second loader, including an official one, would slot into `[loader]` and the `mod-loader` type as they stand; per-loader alternative builds of one mod would need a format extension.
+- Release signing on top of the checksum, once a key management answer exists; the `download` object is where a signature field would land without a break.
