@@ -260,8 +260,9 @@ The `mod-loader` type exists so loaders are listed, versioned, and referenced li
 
 Their authored files add:
 
-**`[releases]`** names where releases appear, with exactly one key: `github = "owner/repo"` or `spacedock = 4253` (the SpaceDock mod id).
-That host is the release authority the watcher polls.
+**`[releases]`** names where releases appear: `github = "owner/repo"` or `spacedock = 4253` (the SpaceDock mod id).
+With one host key, that host is the release authority the watcher polls.
+More than one host key is allowed and then an `authority` key naming one of them is required: the authority defines which releases exist and when, and the other hosts are only checked for an archive with the same bytes, which is how `download.mirrors` gets populated.
 The section is optional; without it, releases enter the index by pull request, which stays the path for content hosted anywhere the watcher does not watch (#27).
 
 **`[loader]`** declares the loader a code mod needs, for `type = "mod"` only:
@@ -350,7 +351,7 @@ Field semantics:
 | `game_min`, `game_min_revision` | The authored bound as displayed, plus its resolved revision, so compatibility is evaluable offline with no index lookup (RFC 0017). `game_max` and `game_max_revision` appear when authored. |
 | `os` | The authored platform list current at release time. Absent when unrestricted. |
 | `download.url` | Direct download of the release archive from its own host; the index never hosts files (RFC 0025). |
-| `download.mirrors` | Optional list of further URLs for the same archive, stamped when the watcher finds the identical archive on more than one host. Any source whose bytes match `download.sha256` is acceptable, which also lets clients fall back to caches. |
+| `download.mirrors` | Optional list of further URLs for the same archive, stamped when a non-authority host from `[releases]` serves an archive with the identical bytes. Any source whose bytes match `download.sha256` is acceptable, which also lets clients fall back to caches. |
 | `download.sha256` | Hex SHA-256 of the archive, case-insensitive. Verifies the download and keys caches. |
 | `download.size` | Archive size in bytes. |
 | `download.content_type` | The archive format. Clients must support `application/zip`. |
@@ -365,6 +366,8 @@ Field semantics:
 The dependency merge: `derived` entries are read per release from the archive's own `mod.toml` (`[[StarMap.ModDependencies]]`, including `Optional`), `authored` entries come from the authored file, and an authored entry replaces the derived entry with the same id.
 Derived entries carry no version bounds because the loader's section has none; authored entries are how bounds get added.
 There is no way to suppress a derived entry, because the loader acts on that data at runtime, so it is ground truth for code dependencies.
+An authored `any_of` entry joins the merge through its members: it replaces the derived entry of every member it names.
+It is a validation error when a named member's derived entry did not carry `Optional = true`, because the loader refuses to start the mod without that specific dependency, so an alternative set would claim a choice that does not exist at runtime.
 
 Stamping freezes the authored facts current at release time.
 Editing the authored file affects future releases only, which is what keeps old releases correct without re-authoring them.
@@ -428,7 +431,7 @@ The line taken everywhere in this format is warn, do not block, consistent with 
 - A dependency or pack member whose id is not listed in the index warns, points at wherever the author says it lives, and lets the user proceed (#27).
 - Game compatibility evaluates per RFC 0017; only incompatible blocks.
 - A platform outside the stated `os` list warns and lets the user proceed: the list states what the author knows works, not everything that can.
-- A yanked release is not offered for new installs or updates; an already installed copy stays untouched and shows the reason. A pack pinning a yanked version warns and lets the user proceed.
+- A yanked release is not offered for new installs or updates; an already installed copy stays untouched and shows the reason. A pack pinning a yanked version warns and lets the user proceed. A yank, like every post-publish amendment, exists only in the index: a cached release file cannot show it, so a client refreshes its index data before offering installs or updates.
 - Metadata a client cannot interpret, including a `spec_version` newer than it implements, renders as an entry in an unknown state; it is never silently dropped.
 
 ### Format evolution
