@@ -113,6 +113,7 @@ superseded_by = "AdvancedFlightComputerNG"
 
 Clients then warn and point users at the successor, but never block the install.
 A single broken release can be yanked the same way: it stays in the history, but clients stop offering it.
+A release that turns out to break only above a certain game build gets its compatibility tightened after the fact instead of a yank, so it stays installable where it works.
 
 ### Publishing a mod pack
 
@@ -305,7 +306,7 @@ An optional **`[install]`** table with a single `root` key overrides the derived
 
 ### The generated release file
 
-One JSON file per release of a watched type, written by tooling at publish time and immutable afterwards, with the single yank exception defined below.
+One JSON file per release of a watched type, written by tooling at publish time and immutable afterwards, with the narrow class of post-publish amendments defined below.
 Nobody hand-writes one: the single hand-written file in the CKAN-for-KSA index was invalid JSON and shipped a wrong install path (see [research/prior-art-ckan.md](../research/prior-art-ckan.md)).
 
 The worked example, continuing the authored file above:
@@ -358,7 +359,7 @@ Field semantics:
 | `loader` | The authored loader bounds current at release time, with `source`. Absent when the mod runs without one. |
 | `dependencies` | The merged dependency list, each entry carrying `source`. |
 | `changelog` | URL of the release's changelog. |
-| `yanked` | `true` when the author has retracted this release; absent otherwise. The only field a generated file accepts a change to after publish. |
+| `yanked` | `true` when the author has retracted this release; absent otherwise. Set as a post-publish amendment. |
 | `yanked_reason` | Optional free text shown alongside the yank warning. |
 
 The dependency merge: `derived` entries are read per release from the archive's own `mod.toml` (`[[StarMap.ModDependencies]]`, including `Optional`), `authored` entries come from the authored file, and an authored entry replaces the derived entry with the same id.
@@ -372,8 +373,15 @@ A version is stamped exactly once.
 If the host's tag for an already stamped version reappears with different bytes, the watcher rejects it and never overwrites; how that gets flagged is the index's business (#27).
 The author's way forward is a new version, or a yank of the broken one.
 
-A published release can be retracted but not edited.
-Setting `yanked = true`, with an optional `yanked_reason`, is the only change a generated file accepts after publish; who may set it is part of the index's publishing flow (#27).
+A published release accepts a narrow class of post-publish amendments, and nothing else.
+Every amendment records knowledge gained after publish, and it can only narrow what the release claims to support; who may make one is part of the index's publishing flow (#27).
+
+- Setting `yanked = true`, with an optional `yanked_reason`: the author retracts the release entirely.
+- Tightening game compatibility: adding or lowering `game_max` and `game_max_revision`, never raising `game_min`.
+- Tightening a dependency or loader bound: adding or lowering a `max` on an existing entry, never widening a bound and never adding or removing entries.
+
+The invariant: a release file can never become more permissive after publish, only less.
+Identity facts, the version, the download, and the install data, are what immutability protects, and they never change; the way forward for those is a new version, or a yank of the broken one.
 A yank is the author's statement about one build, distinct from `deprecated`, which covers the whole listing, and from an index-side takedown, which is not the author's voice at all.
 
 What `download.sha256` does and does not promise: a client that verifies it gets exactly the bytes the watcher stamped, so an archive swapped on its host after stamping fails verification instead of installing.
