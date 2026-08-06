@@ -113,7 +113,7 @@ superseded_by = "AdvancedFlightComputerNG"
 
 Clients then warn and point users at the successor, but never block the install.
 A single broken release can be yanked the same way: it stays in the history, but clients stop offering it.
-A release that turns out to break only above a certain game build gets its compatibility tightened after the fact instead of a yank, so it stays installable where it works.
+A release that turns out to break only above a certain game build gets its compatibility tightened after the fact instead of a yank, so it stays installable where it works; a dependency bound that was stamped too loose, or an entry that was missing, is corrected the same way.
 
 ### Publishing a mod pack
 
@@ -380,10 +380,12 @@ A published release accepts a narrow class of post-publish amendments, and nothi
 Every amendment records knowledge gained after publish, and it can only narrow what the release claims to support; who may make one is part of the index's publishing flow (#27).
 
 - Setting `yanked = true`, with an optional `yanked_reason`: the author retracts the release entirely.
-- Tightening game compatibility: adding or lowering `game_max` and `game_max_revision`, never raising `game_min`.
-- Tightening a dependency or loader bound: adding or lowering a `max` on an existing entry, never widening a bound and never adding or removing entries.
+- Tightening game compatibility: adding or lowering `game_max` and `game_max_revision`, or raising `game_min` and `game_min_revision`.
+- Tightening a dependency or loader bound: adding or lowering a `max`, or adding or raising a `min`, on an existing entry.
+- Adding a dependency entry that was missing, including a `conflict`.
 
-The invariant: a release file can never become more permissive after publish, only less.
+The invariant every amendment must satisfy: a release file can never become more permissive after publish, only less.
+Widening or removing a bound and removing an entry are therefore never amendments; a release that turns out to support more than it was stamped with keeps its stamp, because nobody re-verified the wider claim against the actual archive.
 Identity facts, the version, the download, and the install data, are what immutability protects, and they never change; the way forward for those is a new version, or a yank of the broken one.
 A yank is the author's statement about one build, distinct from `deprecated`, which covers the whole listing, and from an index-side takedown, which is not the author's voice at all.
 
