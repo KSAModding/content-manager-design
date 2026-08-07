@@ -1,15 +1,15 @@
 ---
-rfc: "0000"
+rfc: "0033"
 title: The content index
 status: Proposed
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-08-07
-discussion:
+discussion: https://github.com/KSAModding/content-manager-design/pull/33
 supersedes: []
 superseded-by: []
 ---
 
-# RFC 0000: The content index
+# RFC 0033: The content index
 
 ## Summary
 
