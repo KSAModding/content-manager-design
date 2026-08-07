@@ -31,6 +31,7 @@ For a mod, the metadata is two files with two different writers.
   - sizes
   - install root
   - the resolved dependency list
+  - a snapshot of how the listing described itself at that moment
 
 A mod pack has no generated half.
 
@@ -163,6 +164,8 @@ The pack never redistributes anyone's files; each member downloads from its own 
 
 A client renders its listing from the authored files and evaluates a concrete release from the generated files, joined by id.
 
+A release also remembers how the listing described it at the time it shipped, so browsing version 3 does not show features that only arrived with version 4.
+
 Compatibility follows [RFC 0017](0017-game-version-ordering-and-compatibility.md): incompatible blocks, untested and unknown warn and let the user proceed.
 
 ## Reference-level explanation
@@ -177,7 +180,8 @@ The watcher reads the archive's `mod.toml` as a data source, it never writes to 
 
 This also means fixing authored metadata is an index change, not a mod re-release.
 
-Listing facts (name, abstract, links, tags, status) apply to the whole listing the moment they change; the facts stamped into release files (compatibility, loader, dependencies) are frozen per release.
+Listing facts (name, abstract, links, tags, status) apply to the whole listing the moment they change; the facts a resolver acts on (compatibility, loader, dependencies) are frozen into each release file.
+Each release file additionally carries a snapshot of the listing facts as they stood at stamp time (the `listing` block below), so a release can be displayed as it was described then, while listing views stay live.
 
 ### The id
 
@@ -335,7 +339,18 @@ The worked example, continuing the authored file above:
   "dependencies": [
     { "id": "KittenExtensions", "kind": "optional", "source": "derived" }
   ],
-  "changelog": "https://github.com/Maximilian-Nesslauer/KSA-AdvancedFlightComputer/releases/tag/v0.7.0"
+  "changelog": "https://github.com/Maximilian-Nesslauer/KSA-AdvancedFlightComputer/releases/tag/v0.7.0",
+  "listing": {
+    "name": "Advanced Flight Computer",
+    "authors": ["Maxi"],
+    "abstract": "Extra maneuver planning tools for Kitten Space Agency.",
+    "license": "MIT",
+    "tags": ["control"],
+    "links": {
+      "forums": "https://forums.ahwoo.com/threads/advanced-flight-computer.783/",
+      "repository": "https://github.com/Maximilian-Nesslauer/KSA-AdvancedFlightComputer"
+    }
+  }
 }
 ```
 
@@ -360,6 +375,7 @@ Field semantics:
 | `loader` | The authored loader bounds current at release time, with `source`. Absent when the mod runs without one. |
 | `dependencies` | The merged dependency list, each entry carrying `source`. |
 | `changelog` | URL of the release's changelog. |
+| `listing` | The shared authored core as it stood at stamp time, minus `status` and `superseded_by`: `name`, `authors`, `abstract`, `description` when present, `license`, `tags`, `links`. Lets a client display a release as it was described when it shipped. |
 | `yanked` | `true` when the author has retracted this release; absent otherwise. Set as a post-publish amendment. |
 | `yanked_reason` | Optional free text shown alongside the yank warning. |
 
@@ -371,6 +387,10 @@ It is a validation error when a named member's derived entry did not carry `Opti
 
 Stamping freezes the authored facts current at release time.
 Editing the authored file affects future releases only, which is what keeps old releases correct without re-authoring them.
+
+The `listing` block is that freeze applied to the descriptive facts, so version 3's entry never advertises what only version 4 ships.
+`status` and `superseded_by` are deliberately not in it: deprecation and succession must reach every release the moment they are declared, so a client always reads them live from the authored file, and moderation reads the live `links.forums` for the same reason.
+The block is display history, not an amendable surface: a typo in an old stamp stays, and corrections land in the authored file, where they fix the listing view and every future stamp.
 
 A version is stamped exactly once.
 If the host's tag for an already stamped version reappears with different bytes, the watcher rejects it and never overwrites; how that gets flagged is the index's business (#27).
@@ -429,6 +449,7 @@ Packs that carry files of their own, such as config tweaks, reopen hosting, chec
 
 The line taken everywhere in this format is warn, do not block, consistent with RFC 0017's rationale: the game validates nothing, so a false "incompatible" takes a working mod away from the user, while a false "compatible" is a mod that does not load and can be removed again.
 
+- Listing and search views render live from the authored file. A release view may render the release's `listing` block, presented as what the listing said when the release shipped, and falls back to the authored file where the block or a field is absent. Deprecation, succession, and index status always evaluate from the live data.
 - `deprecated` warns and surfaces `superseded_by` when present; it never blocks an install.
 - A dependency or pack member whose id is not listed in the index warns, points at wherever the author says it lives, and lets the user proceed (#27).
 - Game compatibility evaluates per RFC 0017; only incompatible blocks.
@@ -456,9 +477,9 @@ Rejected: `Mod.MakeUsing` overwrites the declared id with the folder name, so in
 **One syntax for both halves**, all TOML or all JSON.
 Rejected in #15: humans already write TOML here and machines already exchange JSON, and each half is only ever written by one side.
 
-**Fully self-contained generated files**, the CKAN model where each release file repeats name, license, and links.
-Rejected in #15 in favor of minimal release files: a listing needs the authored data anyway, and repeating it per release multiplies every authored fix across history.
-The one self-containment that matters, offline compatibility evaluation, is kept via `game_min_revision`.
+**Fully self-contained generated files**, the CKAN model where the release file is the only file and a client never needs the authored one.
+Rejected in #15: a client needs the authored file anyway, because the live facts, status, succession, and current links, must not be frozen.
+What this format does take from that model is the `listing` snapshot for release-accurate display, while the authored file stays the single live source, and offline compatibility evaluation is kept via `game_min_revision`.
 
 **Version range expressions** such as `>=0.1.0 <0.2.0`.
 Rejected in #15: an expression needs a parser whose edge cases we would have to specify ourselves, npm, cargo, and NuGet all differ subtly, while two typed inclusive fields are schema-validatable and map one to one onto what a resolver evaluates.
