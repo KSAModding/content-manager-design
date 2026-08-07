@@ -1,7 +1,7 @@
 ---
 rfc: "0031"
 title: Content metadata format
-status: Proposed
+status: Accepted
 authors: ["@Maximilian-Nesslauer", "@MrJeranimo"]
 created: 2026-08-05
 discussion: https://github.com/KSAModding/content-manager-design/pull/31
