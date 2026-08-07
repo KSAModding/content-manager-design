@@ -223,7 +223,7 @@ Every authored document, regardless of type, carries these fields:
 | `name` | string | yes | The display name. Free choice of characters and length. |
 | `authors` | array of strings | yes | Display names of the authors. |
 | `abstract` | string | yes | One or two sentences for list and search views. |
-| `description` | string | no | Longer free text on top of the abstract. |
+| `description` | string | no | Longer free text on top of the abstract, written as CommonMark Markdown; plain text is valid as-is, and a client that does not render Markdown shows the source. |
 | `license` | string | yes | An SPDX license expression, such as `MIT` or `CC-BY-4.0`. |
 | `tags` | array of strings | no | Free-form lowercase tags. A curated vocabulary can come later without a format change. |
 | `status` | string | no | `active` (the default) or `deprecated`. The author's declaration about their own content. |
