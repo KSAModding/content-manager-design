@@ -15,7 +15,7 @@ superseded-by: []
 
 One canonical community index, stored as two GitHub repositories and consumed by clients as one snapshot artifact at a stable address.
 
-- **An authored repository** holds the authored TOML documents defined by RFC 0031 ([#31](https://github.com/KSAModding/content-manager-design/pull/31)), one per listing, plus the pack documents. Humans write here, and a new listing whose ownership verifies automatically merges itself.
+- **An authored repository** holds the authored TOML documents defined by [RFC 0031](0031-content-metadata-format.md), one per listing, plus the pack documents. Humans write here, and a new listing whose ownership verifies automatically merges itself.
 - **A generated repository** holds the stamped release files, one JSON document per release. A scheduled watcher writes here unattended. Releases of content the watcher does not watch enter by validated pull request.
 
 A new release on a watched host needs no human.
