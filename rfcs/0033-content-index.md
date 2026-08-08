@@ -1,7 +1,7 @@
 ---
 rfc: "0033"
 title: The content index
-status: Proposed
+status: Accepted
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-08-07
 discussion: https://github.com/KSAModding/content-manager-design/pull/33
