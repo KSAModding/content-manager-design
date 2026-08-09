@@ -1,0 +1,50 @@
+{
+  "spec_version": 1,
+  "id": "DeltaVMap",
+  "type": "mod",
+  "version": "1.2.1",
+  "version_scheme": "semver",
+  "release_status": "stable",
+  "release_date": "2026-08-05T17:49:01Z",
+  "game_min": "2026.8.3.5117",
+  "game_min_revision": 5117,
+  "download": {
+    "url": "https://github.com/Maximilian-Nesslauer/KSA-DeltaVMap/releases/download/v1.2.1/DeltaVMap.zip",
+    "sha256": "A76D30FB4F8C5B52B20210CED8BB4A9954351A7CE4EF1C4D1D03B4CDF6F2415C",
+    "size": 94031,
+    "content_type": "application/zip",
+    "mirrors": [
+      "https://spacedock.info/mod/4294/DeltaVMap/download/1.2.1"
+    ]
+  },
+  "install_size": 208446,
+  "install": {
+    "root": "DeltaVMap",
+    "derived": true
+  },
+  "loader": {
+    "id": "StarMap",
+    "min": "0.4.5",
+    "max": "0.4.6",
+    "source": "authored"
+  },
+  "dependencies": [],
+  "changelog": "https://github.com/Maximilian-Nesslauer/KSA-DeltaVMap/releases/tag/v1.2.1",
+  "listing": {
+    "name": "DeltaVMap",
+    "authors": [
+      "Maxi"
+    ],
+    "abstract": "An interactive, auto-generated delta-v subway map and transfer-window planner for Kitten Space Agency.",
+    "license": "MIT",
+    "tags": [
+      "information"
+    ],
+    "links": {
+      "forums": "https://forums.ahwoo.com/threads/deltavmap.978/",
+      "repository": "https://github.com/Maximilian-Nesslauer/KSA-DeltaVMap",
+      "spacedock": "https://spacedock.info/mod/4294/DeltaVMap",
+      "bugtracker": "https://github.com/Maximilian-Nesslauer/KSA-DeltaVMap/issues"
+    }
+  }
+}

@@ -1,0 +1,27 @@
+spec_version = 1
+id = "MeasureTools"
+type = "mod"
+name = "MeasureTools"
+authors = ["Maxi"]
+abstract = "Click-to-measure ruler and protractor tools for Kitten Space Agency."
+license = "MIT"
+tags = ["information"]
+
+[releases]
+github = "Maximilian-Nesslauer/KSA-MeasureTools"
+spacedock = 4319
+authority = "github"
+
+[links]
+forums = "https://forums.ahwoo.com/threads/measuretools.992/"
+repository = "https://github.com/Maximilian-Nesslauer/KSA-MeasureTools"
+spacedock = "https://spacedock.info/mod/4319/MeasureTools"
+bugtracker = "https://github.com/Maximilian-Nesslauer/KSA-MeasureTools/issues"
+
+[compatibility]
+game_min = "2026.8.3.5117"
+
+[loader]
+id = "StarMap"
+min = "0.4.5"
+max = "0.4.6"

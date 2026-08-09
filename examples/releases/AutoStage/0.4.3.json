@@ -1,0 +1,56 @@
+{
+  "spec_version": 1,
+  "id": "AutoStage",
+  "type": "mod",
+  "version": "0.4.3",
+  "version_scheme": "semver",
+  "release_status": "stable",
+  "release_date": "2026-08-05T17:48:57Z",
+  "game_min": "2026.8.3.5117",
+  "game_min_revision": 5117,
+  "download": {
+    "url": "https://github.com/Maximilian-Nesslauer/KSA-AutoStage/releases/download/v0.4.3/AutoStage.zip",
+    "sha256": "8E60CBBCFFD297729BB70EF25AE0B470651BE4FA9F7D1785382C086811AA5AC6",
+    "size": 25995,
+    "content_type": "application/zip",
+    "mirrors": [
+      "https://spacedock.info/mod/4254/AutoStage/download/0.4.3"
+    ]
+  },
+  "install_size": 56693,
+  "install": {
+    "root": "AutoStage",
+    "derived": true
+  },
+  "loader": {
+    "id": "StarMap",
+    "min": "0.4.5",
+    "max": "0.4.6",
+    "source": "authored"
+  },
+  "dependencies": [
+    {
+      "id": "KittenExtensions",
+      "kind": "required",
+      "source": "derived"
+    }
+  ],
+  "changelog": "https://github.com/Maximilian-Nesslauer/KSA-AutoStage/releases/tag/v0.4.3",
+  "listing": {
+    "name": "AutoStage",
+    "authors": [
+      "Maxi"
+    ],
+    "abstract": "Automatic staging for Kitten Space Agency.",
+    "license": "MIT",
+    "tags": [
+      "control"
+    ],
+    "links": {
+      "forums": "https://forums.ahwoo.com/threads/autostage.891/",
+      "repository": "https://github.com/Maximilian-Nesslauer/KSA-AutoStage",
+      "spacedock": "https://spacedock.info/mod/4254/AutoStage",
+      "bugtracker": "https://github.com/Maximilian-Nesslauer/KSA-AutoStage/issues"
+    }
+  }
+}
