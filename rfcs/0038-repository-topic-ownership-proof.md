@@ -1,15 +1,15 @@
 ---
-rfc: "0000"
+rfc: "0038"
 title: A repository topic as an ownership proof
 status: Proposed
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-08-09
-discussion:
+discussion: https://github.com/KSAModding/content-manager-design/pull/38
 supersedes: []
 superseded-by: []
 ---
 
-# RFC 0000: A repository topic as an ownership proof
+# RFC 0038: A repository topic as an ownership proof
 
 ## Summary
 
