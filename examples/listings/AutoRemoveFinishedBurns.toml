@@ -1,0 +1,27 @@
+spec_version = 1
+id = "AutoRemoveFinishedBurns"
+type = "mod"
+name = "AutoRemoveFinishedBurns"
+authors = ["Maxi"]
+abstract = "Auto-remove finished burns from the burn plan in Kitten Space Agency."
+license = "MIT"
+tags = ["control"]
+
+[releases]
+github = "Maximilian-Nesslauer/KSA-AutoRemoveFinishedBurns"
+spacedock = 4255
+authority = "github"
+
+[links]
+forums = "https://forums.ahwoo.com/threads/autoremovefinishedburns.928/"
+repository = "https://github.com/Maximilian-Nesslauer/KSA-AutoRemoveFinishedBurns"
+spacedock = "https://spacedock.info/mod/4255/AutoRemoveFinishedBurns"
+bugtracker = "https://github.com/Maximilian-Nesslauer/KSA-AutoRemoveFinishedBurns/issues"
+
+[compatibility]
+game_min = "2026.8.3.5117"
+
+[loader]
+id = "StarMap"
+min = "0.4.5"
+max = "0.4.6"

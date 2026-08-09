@@ -1,0 +1,27 @@
+spec_version = 1
+id = "AutoStage"
+type = "mod"
+name = "AutoStage"
+authors = ["Maxi"]
+abstract = "Automatic staging for Kitten Space Agency."
+license = "MIT"
+tags = ["control"]
+
+[releases]
+github = "Maximilian-Nesslauer/KSA-AutoStage"
+spacedock = 4254
+authority = "github"
+
+[links]
+forums = "https://forums.ahwoo.com/threads/autostage.891/"
+repository = "https://github.com/Maximilian-Nesslauer/KSA-AutoStage"
+spacedock = "https://spacedock.info/mod/4254/AutoStage"
+bugtracker = "https://github.com/Maximilian-Nesslauer/KSA-AutoStage/issues"
+
+[compatibility]
+game_min = "2026.8.3.5117"
+
+[loader]
+id = "StarMap"
+min = "0.4.5"
+max = "0.4.6"
