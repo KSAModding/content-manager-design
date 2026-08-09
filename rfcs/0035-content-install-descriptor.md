@@ -1,7 +1,7 @@
 ---
 rfc: "0035"
 title: Content install descriptor
-status: Draft
+status: Proposed
 authors: []
 created: 2026-08-09
 discussion:
@@ -106,7 +106,7 @@ abstract = "The loader KSA code mods run on."
 license = "MIT"
 
 [releases]
-github = "KSAModding/StarMap"
+github = "StarMapLoader/StarMap"
 ```
 
 Add where it is written:
