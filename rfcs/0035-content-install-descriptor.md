@@ -1,5 +1,5 @@
 ---
-rfc: "0036"
+rfc: "0035"
 title: Content install descriptor
 status: Draft
 authors: []
@@ -9,7 +9,7 @@ supersedes: []
 superseded-by: []
 ---
 
-# RFC 0036: Content install descriptor
+# RFC 0035: Content install descriptor
 
 ## Summary
 
