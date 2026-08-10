@@ -1,10 +1,10 @@
 ---
 rfc: "0035"
 title: Content install descriptor
-status: Proposed
+status: Accepted
 authors: ["@SafeShows"]
 created: 2026-08-09
-discussion:
+discussion: https://github.com/KSAModding/content-manager-design/pull/35
 supersedes: []
 superseded-by: []
 ---
