@@ -1,0 +1,53 @@
+{
+  "spec_version": 1,
+  "id": "StageInfo",
+  "type": "mod",
+  "version": "0.6.0",
+  "version_scheme": "semver",
+  "release_status": "stable",
+  "release_date": "2026-07-12T14:02:35Z",
+  "game_min": "2026.7.5.4892",
+  "game_min_revision": 4892,
+  "game_max": "2026.7.5.4892",
+  "game_max_revision": 4892,
+  "download": {
+    "url": "https://github.com/Maximilian-Nesslauer/KSA-StageInfo/releases/download/v0.6.0/StageInfo.zip",
+    "sha256": "C9C7EA7A1EA83A2069CAC40FA835624408BCB9CB799D376326F740EF47509F4E",
+    "size": 37785,
+    "content_type": "application/zip",
+    "mirrors": [
+      "https://spacedock.info/mod/4256/StageInfo/download/0.6.0"
+    ]
+  },
+  "install_size": 85562,
+  "install": {
+    "root": "StageInfo",
+    "derived": true
+  },
+  "loader": {
+    "id": "StarMap",
+    "min": "0.4.5",
+    "max": "0.4.5",
+    "source": "authored"
+  },
+  "dependencies": [],
+  "changelog": "https://github.com/Maximilian-Nesslauer/KSA-StageInfo/releases/tag/v0.6.0",
+  "listing": {
+    "name": "StageInfo",
+    "authors": [
+      "Maxi"
+    ],
+    "abstract": "Extra info and flight performance readouts in the stock staging window for Kitten Space Agency.",
+    "description": "Retired: stock KSA 2026.7.6.4939 reworked the Sequence UI and now shows per-sequence delta-v, TWR, and fuel readouts, which is what this mod added.\nThe final release stays installable on the game builds it was written for.\n",
+    "license": "MIT",
+    "tags": [
+      "information"
+    ],
+    "links": {
+      "forums": "https://forums.ahwoo.com/threads/archived-stageinfo.905/",
+      "repository": "https://github.com/Maximilian-Nesslauer/KSA-StageInfo",
+      "spacedock": "https://spacedock.info/mod/4256/StageInfo",
+      "bugtracker": "https://github.com/Maximilian-Nesslauer/KSA-StageInfo/issues"
+    }
+  }
+}

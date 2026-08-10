@@ -1,0 +1,27 @@
+spec_version = 1
+id = "DeltaVMap"
+type = "mod"
+name = "DeltaVMap"
+authors = ["Maxi"]
+abstract = "An interactive, auto-generated delta-v subway map and transfer-window planner for Kitten Space Agency."
+license = "MIT"
+tags = ["information"]
+
+[releases]
+github = "Maximilian-Nesslauer/KSA-DeltaVMap"
+spacedock = 4294
+authority = "github"
+
+[links]
+forums = "https://forums.ahwoo.com/threads/deltavmap.978/"
+repository = "https://github.com/Maximilian-Nesslauer/KSA-DeltaVMap"
+spacedock = "https://spacedock.info/mod/4294/DeltaVMap"
+bugtracker = "https://github.com/Maximilian-Nesslauer/KSA-DeltaVMap/issues"
+
+[compatibility]
+game_min = "2026.8.3.5117"
+
+[loader]
+id = "StarMap"
+min = "0.4.5"
+max = "0.4.6"

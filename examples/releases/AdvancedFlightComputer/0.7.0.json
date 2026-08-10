@@ -1,0 +1,58 @@
+{
+  "spec_version": 1,
+  "id": "AdvancedFlightComputer",
+  "type": "mod",
+  "version": "0.7.0",
+  "version_scheme": "semver",
+  "release_status": "stable",
+  "release_date": "2026-08-02T13:18:42Z",
+  "game_min": "2026.8.3.5117",
+  "game_min_revision": 5117,
+  "download": {
+    "url": "https://github.com/Maximilian-Nesslauer/KSA-AdvancedFlightComputer/releases/download/v0.7.0/AdvancedFlightComputer.zip",
+    "sha256": "ABC2A72E348AB26960FF59EDD019F160B12844099C30BF00F7D4E4D3D1ED5E74",
+    "size": 131042,
+    "content_type": "application/zip",
+    "mirrors": [
+      "https://spacedock.info/mod/4253/AdvancedFlightComputer/download/0.7.0"
+    ]
+  },
+  "install_size": 329449,
+  "install": {
+    "root": "AdvancedFlightComputer",
+    "derived": true
+  },
+  "loader": {
+    "id": "StarMap",
+    "min": "0.4.5",
+    "max": "0.4.6",
+    "source": "authored"
+  },
+  "dependencies": [
+    {
+      "id": "KittenExtensions",
+      "kind": "optional",
+      "source": "derived"
+    }
+  ],
+  "changelog": "https://github.com/Maximilian-Nesslauer/KSA-AdvancedFlightComputer/releases/tag/v0.7.0",
+  "listing": {
+    "name": "Advanced Flight Computer",
+    "authors": [
+      "Maxi"
+    ],
+    "abstract": "Extra maneuver planning tools for Kitten Space Agency.",
+    "description": "Adds quick-tools to the Transfer Planner (set periapsis/apoapsis, match or set inclination, circularize), flyby targeting so a Hohmann transfer arrives as a flyby instead of an impact, multi-pass burn splitting for Oberth-efficient departures, and lets the planner target interstellar comets on hyperbolic orbits.\n\nFeatures:\n\n- New plan types in the stock Transfer Planner dropdown: Set Periapsis, Set Apoapsis, Match Inclination, Set Inclination.\n- Flyby targeting: aim the departure burn at a chosen flyby periapsis and side instead of the target body's center.\n- Multi-pass burns: split a departure across successive periapsis passes to reduce finite-burn loss.\n",
+    "license": "MIT",
+    "tags": [
+      "control"
+    ],
+    "links": {
+      "forums": "https://forums.ahwoo.com/threads/advanced-flight-computer.783/",
+      "repository": "https://github.com/Maximilian-Nesslauer/KSA-AdvancedFlightComputer",
+      "spacedock": "https://spacedock.info/mod/4253/AdvancedFlightComputer",
+      "bugtracker": "https://github.com/Maximilian-Nesslauer/KSA-AdvancedFlightComputer/issues",
+      "discussions": "https://github.com/Maximilian-Nesslauer/KSA-AdvancedFlightComputer/discussions"
+    }
+  }
+}

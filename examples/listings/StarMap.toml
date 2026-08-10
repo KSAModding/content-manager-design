@@ -1,0 +1,18 @@
+spec_version = 1
+id = "StarMap"
+type = "mod-loader"
+name = "StarMap"
+authors = ["KlaasWhite"]
+abstract = "Mod loader that runs code mods for Kitten Space Agency."
+license = "MIT"
+tags = ["library"]
+
+[releases]
+github = "StarMapLoader/StarMap"
+
+[links]
+forums = "https://forums.ahwoo.com/threads/starmap-mod-loader.384/"
+repository = "https://github.com/StarMapLoader/StarMap"
+
+[compatibility]
+game_min = "2026.8.3.5117"
