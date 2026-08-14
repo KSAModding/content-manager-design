@@ -35,12 +35,14 @@ Poll it with `If-None-Match`, and an unchanged index answers 304.
 
 ## Determinism
 
-The builder writes the same bytes for the same input.
-An unchanged index therefore keeps its ETag, and the scheduled backstop rebuild costs every client nothing.
+The builder writes the same bytes for the same input, and an index whose bytes are already published is not published again.
+Both are needed, because publishing is a deployment and a deployment issues a new ETag either way.
+Together they keep a cached copy valid: an unchanged index costs a client one 304, and the scheduled backstop rebuild costs it nothing.
 
-Three rules carry that:
+Four rules carry that:
 
 - **No wall-clock field.** A `generated_at` would change the bytes on every scheduled rebuild and invalidate every cached copy for no change in content. `sources` carries the provenance instead, and how stale a copy is comes from HTTP.
+- **The provenance follows the content, not the clock.** `sources` names the state the published content was built from, so it moves only when the content moves. A commit that changes nothing the snapshot carries has to leave the bytes alone, or `sources` reintroduces the problem above, only slower.
 - **Every array is ordered**, by the rules below, rather than left in the order a filesystem happened to hand its entries over.
 - **UTF-8, no BOM, LF line endings, two-space indent.**
 
