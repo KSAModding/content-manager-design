@@ -1,15 +1,15 @@
 ---
-rfc: "0000"
+rfc: "0048"
 title: Ownership of an edit
 status: Proposed
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-08-15
-discussion:
+discussion: https://github.com/KSAModding/content-manager-design/pull/48
 supersedes: []
 superseded-by: []
 ---
 
-# RFC 0000: Ownership of an edit
+# RFC 0048: Ownership of an edit
 
 ## Summary
 
