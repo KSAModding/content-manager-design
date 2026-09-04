@@ -1,15 +1,15 @@
 ---
-rfc: "0000"
+rfc: "0049"
 title: Instance handover
 status: Draft
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-09-04
-discussion: https://github.com/KSAModding/content-manager-design/discussions/20
+discussion: https://github.com/KSAModding/content-manager-design/pull/49
 supersedes: []
 superseded-by: []
 ---
 
-# RFC 0000: Instance handover
+# RFC 0049: Instance handover
 
 ## Summary
 
