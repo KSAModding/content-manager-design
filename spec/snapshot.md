@@ -57,6 +57,7 @@ Object key order is not part of the contract, and a client must not depend on it
 | `listings` | yes | Mods and mod loaders. Ascending by lowercased id. |
 | `packs` | yes | Mod packs. Ascending by lowercased id. |
 | `game_versions` | yes | The game release list, verbatim. |
+| `tags` | no | The curated tag vocabulary, `tags.toml` of the authored repository verbatim ([tags.md](tags.md)). Absent until that file exists. |
 
 ```json
 {
@@ -145,6 +146,11 @@ Public production builds only, ascending by revision, which is the only componen
 
 A client needs it to render a revision as the version string a user recognises, and to show where a compatibility bound sits in the release history.
 It does not need it to evaluate compatibility: every release file carries `game_min_revision` and, where authored, `game_max_revision`, so that evaluation stays a comparison of integers with no lookup.
+
+### The curated tags
+
+`tags` is `tags.toml` from the authored repository, embedded verbatim as JSON, so a client builds its filter chips without a second request.
+Which tags exist and what they mean is in [tags.md](tags.md).
 
 ## Versions, and what a client does with one it does not know
 
