@@ -1,15 +1,15 @@
 ---
-rfc: "0000"
+rfc: "0058"
 title: Listing images and dates
 status: Proposed
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-09-13
-discussion:
+discussion: https://github.com/KSAModding/content-manager-design/pull/58
 supersedes: []
 superseded-by: []
 ---
 
-# RFC 0000: Listing images and dates
+# RFC 0058: Listing images and dates
 
 ## Summary
 
