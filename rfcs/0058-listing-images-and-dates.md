@@ -14,7 +14,7 @@ superseded-by: []
 ## Summary
 
 An authored document gets an optional `[images]` table with two roles: a square icon, and the images its Markdown description shows.
-Each image is a record naming a URL on the author's own host, together with the SHA-256 digest, width, height, byte size and license of the image.
+Each image is a record naming a URL on the author's own host, together with the SHA-256 digest, width, height and byte size of the image, and its license when that differs from the document's.
 The listing checks fetch every image and verify those facts, the index copies and serves nothing, and a client verifies the bytes again before it shows them.
 
 The snapshot gets two derived optional fields on every listing and pack entry, `published_at` and `updated_at`, computed from the release and pack version timestamps that already exist.
@@ -62,11 +62,11 @@ sha256 = "1234567890ABCDEF1234567890ABCDEF1234567890ABCDEF1234567890ABCDEF"
 width = 1600
 height = 900
 size = 402117
-license = "MIT"
 ```
 
 The image stays on your host, for example in your repository or on your website.
 The listing tool or a submission form fills in `sha256`, `width`, `height` and `size` from the file, and the checks fetch the image and compare.
+A record without `license` falls under the document's `license`, which fits your own screenshots, and a record under a different license names it, as the icon above does.
 
 In the description, `ksa-image:settings-window` places the image with that `id`.
 A client shows no other images in a description, so a plain image URL there does not display.
@@ -105,9 +105,9 @@ The checks reject a key inside `[images]` that they do not know, and a client ig
 | `width` | integer | yes | Width in pixels. |
 | `height` | integer | yes | Height in pixels. |
 | `size` | integer | yes | Length of the image in bytes. |
-| `license` | string | yes | An SPDX license expression for the image, by the same rule as the document's `license`. |
-| `attribution` | string | no | Credit text, required by the author when the image's license requires credit. |
-| `source` | string | no | HTTPS URL of the original work, when the license requires a link to it. |
+| `license` | string | no | An SPDX license expression for the image, by the same rule as the document's `license`. Absent means the image is under the document's `license`. |
+| `attribution` | string | no | Credit text that a client shows with the image. The author adds it when the image's license requires credit. |
+| `source` | string | no | HTTPS URL of the original work, which a client links with the image. The author adds it when the license requires a link to it. |
 
 A description image record has one more key:
 
@@ -115,15 +115,15 @@ A description image record has one more key:
 |---|---|---|---|
 | `id` | string | yes | The name the description references. 1 to 64 ASCII letters, digits, `-` and `_`, first and last a letter or digit, case-sensitive, unique within the document. |
 
-The image has its own `license` because the document's `license` covers the content, and artwork is often a separate work with separate terms.
-An author whose image falls under the document's license repeats that value.
+An image can name its own `license` because the document's `license` covers the content, and artwork is often a separate work with separate terms.
+A record without `license` is under the document's `license`, so an author's own screenshots need no extra line.
 
 ### Limits
 
 | Role | Records | Pixels per side | Bytes |
 |---|---|---|---|
 | `icon` | 0 or 1 | 256 to 1024, and `width` equals `height` | at most 256 KiB |
-| `description` | 0 to 8 | 256 to 2048 | at most 1 MiB each |
+| `description` | 0 to 8 | at most 2048 | at most 1 MiB each |
 
 For both roles, the image is PNG, JPEG or WebP, read from the file signature and not from the extension or the `Content-Type` header, and it is not animated, so an APNG or an animated WebP is invalid.
 
@@ -196,13 +196,14 @@ A dead image is not a state of the index.
 - A client can lay out a list from `width` and `height` and show a placeholder until the image loads.
 - Before it shows fetched bytes, a client applies the same rules as the checks: HTTPS and the redirect limit, the streamed byte limit, the format, no animation, and `width`, `height`, `size` and `sha256` equal to the record. It should also apply the public network target rule, because a host name can resolve to a different address after publication.
 - An image that fails any of these is missing metadata: the client shows the placeholder for the content type, and the listing stays usable.
+- A client shows a record's `attribution`, and a link to its `source`, together with the image, for example as a caption or a tooltip, so the credit a license asks for reaches the reader. For an icon in a list row, showing them on the listing's detail view is enough.
 - A client fetches without credentials or cookies, should load only the images it is about to show, and caches by `sha256`, so an image with a known digest never has to be fetched again.
 - A client should offer a setting to load no images from author hosts, because every fetch tells that host the reader's IP address. With the setting on, it shows placeholders.
 - An image never affects installation, dependency resolution, compatibility or ownership.
 
 ### Rights
 
-The listing guidance of the authored repository gains one submission statement: by adding an image record, the submitter states that they have the right to publish the image and to let clients fetch, display and cache it under the stated `license`.
+The listing guidance of the authored repository gains one submission statement: by adding an image record, the submitter states that they have the right to publish the image and to let clients fetch, display and cache it under the record's `license`, or under the document's `license` when the record names none.
 When the image is third-party work, or its license requires credit, a license notice or a link to the original, the record carries that in `attribution` and `source`.
 
 The [KSA Mod Release Rules](https://forums.ahwoo.com/forums/kitten-space-agency/mod-releases/mod-release-rules.485/) are the community precedent for crediting other people's assets, and they do not grant any right to an image by themselves.
@@ -303,7 +304,6 @@ Rejected for now because rendering vector documents from arbitrary hosts has a m
 
 ## Unresolved questions
 
-- Whether the 256 pixel minimum is too strict for description images, where a small screenshot of one window part is a natural image.
 - How often the sweep re-fetches images, which is a tuning question for the watcher rather than a format question.
 
 ## Future possibilities
