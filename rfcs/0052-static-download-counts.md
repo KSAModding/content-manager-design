@@ -1,7 +1,7 @@
 ---
 rfc: "0052"
 title: Static download counts
-status: Proposed
+status: Accepted
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-09-10
 discussion: https://github.com/KSAModding/content-manager-design/pull/52
