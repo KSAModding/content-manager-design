@@ -13,7 +13,7 @@ It never rewrites the content of a document.
 
 - It **joins** each listing to its release files, so a client never sees the two-repository split.
 - It **filters** out everything a delisted listing owns, and leaves a tombstone.
-- It **attaches** the index's own state to the listing or the pack version that state names.
+- It **attaches** the index's own state to the listing or the pack version that state names, and the download counts to the listing they count.
 
 Every authored document and every release file appears verbatim, exactly as the repositories hold it.
 A field this page does not mention is still in the document, and a client reads it against RFC 0031, not against this page.
@@ -82,11 +82,12 @@ An empty index is `listings` and `packs` as empty arrays, never as absent fields
 | `authored` | no | The authored TOML document, as JSON, verbatim. Absent only on a tombstone. |
 | `releases` | no | The stamped release files of this listing, verbatim, descending by SemVer precedence. Absent only on a tombstone. |
 | `index_status` | no | The index's own state for this listing. |
+| `downloads` | no | The download counts of this listing ([RFC 0052](../rfcs/0052-static-download-counts.md)). Absent means unknown, never zero. |
 
 `releases` is an empty array for a listing whose release host has no release yet, which RFC 0033 admits as a listing that passes its checks vacuously.
 A client lists it and has nothing to install.
 
-Three voices sit side by side in one entry and never mix, which is why each has its own key: the author writes `authored`, tooling writes `releases`, and the index writes `index_status`.
+Three voices sit side by side in one entry and never mix, which is why each has its own key: the author writes `authored`, tooling writes `releases` and `downloads`, and the index writes `index_status`.
 The author's own `status` field, `active` or `deprecated`, is inside `authored` where it belongs, and it is not the same thing as `index_status`.
 
 Each release also carries the `listing` block RFC 0031 freezes into it, so a release can be shown as it was described when it shipped, while `authored` stays live.
@@ -129,6 +130,14 @@ Nothing is deleted from anyone's machine, and nothing is deleted from the reposi
 The entry is complete and carries the state next to it, so a client shows a warning and lets the user proceed.
 
 **`retracted` scopes to one pack version**, and a client treats it the way it treats a yanked release (RFC 0031).
+
+### Download counts
+
+`downloads` is the listing's entry from `download-counts.json` without the repeated `id`, in the shape [RFC 0052](../rfcs/0052-static-download-counts.md) defines.
+A tombstone and a pack carry none, and an entry whose id matches no listing fails the build.
+
+An absent count means unknown, and a client must not show it as zero.
+A client may show the counts and sort by them, keeps listings without counts available, and never uses the counts for resolution, installation, ownership or moderation.
 
 ### The game release list
 
@@ -214,7 +223,7 @@ The builder in the generated index repository produces the first one, and until 
 ## What the snapshot does not carry
 
 - **Per-user state.** Favourites, votes and comments need a server, which [RFC 0025](../rfcs/0025-scope.md) rules out.
-- **Download counts and any other aggregated signal.** RFC 0033 names them as a possible future static aggregation, and until one exists a client cannot sort by popularity.
+- **Counts over time, rankings or a featured list.** `downloads` is the last known count only (RFC 0052).
 - **Anything a client owns.** Instances, install locations and settings are local, and the index never learns about them.
 - **The files themselves.** Every release names its own host, and the index hosts nothing (RFC 0025).
 
