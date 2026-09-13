@@ -13,7 +13,8 @@ superseded-by: []
 
 ## Summary
 
-An authored document gets an optional `[images]` table with two roles: a square icon, and the images its Markdown description shows.
+An authored document gets an optional `[images]` table with two roles: one square icon, and the images its Markdown description shows.
+The icon is the only artwork a listing needs, and a client shows it at every size its layouts use; screenshots and any other pictures go into the description.
 Each image is a record naming a URL on the author's own host, together with the SHA-256 digest, width, height and byte size of the image, and its license when that differs from the document's.
 The listing checks fetch every image and verify those facts, the index copies and serves nothing, and a client verifies the bytes again before it shows them.
 
@@ -64,6 +65,10 @@ height = 900
 size = 402117
 ```
 
+The icon is the one piece of art you make.
+A client shows it in a list row, on a tile and in the detail header, so one square file of 512 by 512 pixels or more covers all three.
+Everything else you want to show, screenshots, a header picture or a whole gallery, goes into your description, as many or as few images as you like within the limits.
+
 The image stays on your host, for example in your repository or on your website.
 The listing tool or a submission form fills in `sha256`, `width`, `height` and `size` from the file, and the checks fetch the image and compare.
 A record without `license` falls under the document's `license`, which fits your own screenshots, and a record under a different license names it, as the icon above does.
@@ -79,7 +84,7 @@ If your image later stops loading or changes on its host, the index tells you in
 ### For a client
 
 A client can lay out a list from the snapshot alone, because each record carries the size of the image.
-It loads the images the user can see, checks the bytes against the record, and caches them by digest.
+It loads the icons the user can see and the description images only when it shows the description, checks the bytes against the record, and caches them by digest.
 When an image does not load or does not match, the client shows its placeholder for the content type, and the listing works as before.
 
 ## Reference-level explanation
@@ -90,7 +95,7 @@ Optional on `mod`, `mod-loader` and `modpack` documents.
 
 | Key | Type | Required | Meaning |
 |---|---|---|---|
-| `icon` | table | no | The square image that stands for the listing in lists, headers and tiles. One image record. |
+| `icon` | table | no | The square image that stands for the listing in lists, tiles and headers, at the size each of them needs. One image record. |
 | `description` | array of tables | no | The images the `description` references. Description image records. |
 
 These two roles are the whole vocabulary, and a new role arrives by RFC.
@@ -123,11 +128,12 @@ A record without `license` is under the document's `license`, so an author's own
 | Role | Records | Pixels per side | Bytes |
 |---|---|---|---|
 | `icon` | 0 or 1 | 256 to 1024, and `width` equals `height` | at most 256 KiB |
-| `description` | 0 to 8 | at most 2048 | at most 1 MiB each |
+| `description` | 0 to 16 | at most 2048 | at most 1 MiB each |
 
 For both roles, the image is PNG, JPEG or WebP, read from the file signature and not from the extension or the `Content-Type` header, and it is not animated, so an APNG or an animated WebP is invalid.
 
-The count cap and the pixel cap bound what a client decodes: a 2048 by 2048 image takes about 16 MiB as decoded pixels, so a full listing stays near 130 MiB in the worst case.
+The caps bound what the checks and a client download for one listing, about 16 MiB at most.
+They do not have to bound memory by count: a client loads description images only when it shows the description and decodes the ones in view, so what it holds follows the screen, and a 2048 by 2048 image takes about 16 MiB as decoded pixels.
 
 ### Live facts, and packs
 
@@ -194,10 +200,12 @@ A dead image is not a state of the index.
 ### Client behavior
 
 - A client can lay out a list from `width` and `height` and show a placeholder until the image loads.
+- A client renders the one icon at every size its layouts need, such as a list row, a tile and a detail header, and scales it without stretching or cropping it. Where a slot is not square, the client fits the whole icon inside the slot with its own surface colour around it.
 - Before it shows fetched bytes, a client applies the same rules as the checks: HTTPS and the redirect limit, the streamed byte limit, the format, no animation, and `width`, `height`, `size` and `sha256` equal to the record. It should also apply the public network target rule, because a host name can resolve to a different address after publication.
 - An image that fails any of these is missing metadata: the client shows the placeholder for the content type, and the listing stays usable.
 - A client shows a record's `attribution`, and a link to its `source`, together with the image, for example as a caption or a tooltip, so the credit a license asks for reaches the reader. For an icon in a list row, showing them on the listing's detail view is enough.
-- A client fetches without credentials or cookies, should load only the images it is about to show, and caches by `sha256`, so an image with a known digest never has to be fetched again.
+- A client fetches without credentials or cookies, and caches by `sha256`, so an image with a known digest never has to be fetched again. It should load only the icons it is about to show, and it loads description images only when it shows the description, never for a list.
+- A client may present the description images of a listing as a gallery next to the description, in the order the description references them.
 - A client should offer a setting to load no images from author hosts, because every fetch tells that host the reader's IP address. With the setting on, it shows placeholders.
 - An image never affects installation, dependency resolution, compatibility or ownership.
 
@@ -246,7 +254,7 @@ The builder already joins, filters and attaches; these two fields add a fourth k
 |---|---|
 | A key inside `[images]` other than `icon` and `description` | File invalid. |
 | A required record key missing, or a key the record does not define | File invalid. |
-| More than one icon, or more than 8 description records | File invalid. |
+| More than one icon, or more than 16 description records | File invalid. |
 | An `id` outside its rules, or two description records with the same `id` | File invalid. |
 | A `url` or `source` that is not HTTPS | File invalid. |
 | A `ksa-image:` reference to an id with no record | File invalid. |
@@ -269,7 +277,8 @@ The authored schema of the index rejects unknown fields, so the checks have to l
 - The checks and every client fetch URLs an author chose. The network target rules are what keeps that from reaching a private network, and a mistake in implementing them is a real vulnerability.
 - The author has to supply four facts per image that a tool computes. Without the listing tool or a submission form, that is error-prone by hand.
 - A dead or changed image is found only on the next sweep, and the author has to read the issue.
-- The icon is square only. Wide art has to be cropped, and a title laid over an icon, as on the Home tiles, can be hard to read.
+- The icon is square only. Art made for a wide layout has to be cut to a square, and a client shows it small in a list row, where fine detail is lost.
+- A description with many images makes the checks and the sweep fetch more per listing.
 - `published_at` and `updated_at` can move after the fact, which surprises a reader who remembers the old value.
 
 ## Alternatives
@@ -287,8 +296,12 @@ Rejected because the validation job only leaves a verdict and the snapshot build
 **Report a dead image in `index_status`.**
 Rejected because that is the stewards' moderation voice, and a client warns on a state it does not know.
 
-**A banner and a gallery now.**
-Rejected for now because no design has a place for them, see Borea#8, and an optional role added later is not a break.
+**An icon in several sizes, one file per layout.**
+Rejected because it asks an author without art skills for several files of the same picture, while a client scales one square image down to every size its layouts need.
+
+**A banner and a gallery as roles of their own.**
+Rejected because the description already carries every further image, as many as the author wants within the limits, in the place and order the author chooses, and one square icon asks the least art of an author.
+A client that wants a gallery view builds it from the description images, as the client rules allow.
 
 **Image URLs directly in the description.**
 Rejected because they bypass every limit, the digest and the license, and send the reader's IP address to any host an author names.
@@ -308,7 +321,7 @@ Rejected for now because rendering vector documents from arbitrary hosts has a m
 
 ## Future possibilities
 
-- A banner role and a gallery role with required alternative text, by RFC, once a design needs them.
+- A banner role or a gallery role, by RFC, if a design ever needs art that the description cannot carry.
 - Download counts, proposed as RFC 0052 in [#52](https://github.com/KSAModding/content-manager-design/pull/52), cover the download numbers the designs show. A "trending" view needs counts over time, which neither RFC 0052 nor this RFC provides.
 - Image caches and mirrors keyed by `sha256`, so a derived view such as a web front end can serve images and hide readers' addresses from author hosts, with clients accepting any source whose bytes match, as RFC 0031 already does for `download.mirrors`.
 - The vehicle and save content types, when their RFCs arrive, can reuse the image record unchanged.
