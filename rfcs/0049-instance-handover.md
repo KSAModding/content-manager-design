@@ -1,7 +1,7 @@
 ---
 rfc: "0049"
 title: Instance handover
-status: Proposed
+status: Accepted
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-09-04
 discussion: https://github.com/KSAModding/content-manager-design/pull/49
