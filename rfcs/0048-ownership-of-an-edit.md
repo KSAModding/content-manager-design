@@ -1,7 +1,7 @@
 ---
 rfc: "0048"
 title: Ownership of an edit
-status: Proposed
+status: Accepted
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-08-15
 discussion: https://github.com/KSAModding/content-manager-design/pull/48
