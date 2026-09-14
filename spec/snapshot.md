@@ -8,12 +8,13 @@ Everything downstream happens locally: search, dependency resolution and compati
 
 ## What the builder does, and what it does not
 
-The builder joins, filters and attaches.
+The builder joins, filters, attaches and derives.
 It never rewrites the content of a document.
 
 - It **joins** each listing to its release files, so a client never sees the two-repository split.
 - It **filters** out everything a delisted listing owns, and leaves a tombstone.
 - It **attaches** the index's own state to the listing or the pack version that state names, and the download counts to the listing they count.
+- It **derives** `published_at` and `updated_at` for each listing and pack from the version timestamps it carries.
 
 Every authored document and every release file appears verbatim, exactly as the repositories hold it.
 A field this page does not mention is still in the document, and a client reads it against RFC 0031, not against this page.
@@ -83,11 +84,13 @@ An empty index is `listings` and `packs` as empty arrays, never as absent fields
 | `releases` | no | The stamped release files of this listing, verbatim, descending by SemVer precedence. Absent only on a tombstone. |
 | `index_status` | no | The index's own state for this listing. |
 | `downloads` | no | The download counts of this listing ([RFC 0052](../rfcs/0052-static-download-counts.md)). Absent means unknown, never zero. |
+| `published_at` | no | When the listing first appeared, from its release files. See [Dates](#dates). |
+| `updated_at` | no | When the listing last had a release that is not yanked. See [Dates](#dates). |
 
 `releases` is an empty array for a listing whose release host has no release yet, which RFC 0033 admits as a listing that passes its checks vacuously.
 A client lists it and has nothing to install.
 
-Three voices sit side by side in one entry and never mix, which is why each has its own key: the author writes `authored`, tooling writes `releases` and `downloads`, and the index writes `index_status`.
+Three voices sit side by side in one entry and never mix, which is why each has its own key: the author writes `authored`, tooling writes `releases`, `downloads` and the dates, and the index writes `index_status`.
 The author's own `status` field, `active` or `deprecated`, is inside `authored` where it belongs, and it is not the same thing as `index_status`.
 
 Each release also carries the `listing` block RFC 0031 freezes into it, so a release can be shown as it was described when it shipped, while `authored` stays live.
@@ -99,6 +102,8 @@ Each release also carries the `listing` block RFC 0031 freezes into it, so a rel
 | `id` | yes | The pack id, in its authored casing. |
 | `versions` | no | The pack version documents, descending by SemVer precedence. Absent only on a tombstone. |
 | `index_status` | no | The index's own state for the whole pack. |
+| `published_at` | no | When the pack first appeared, from its versions. See [Dates](#dates). |
+| `updated_at` | no | When the pack last had a version that is not retracted. See [Dates](#dates). |
 
 Each entry of `versions` is `{ "authored": <the pack document, verbatim> }`, plus an `index_status` when that version is retracted.
 A pack has no generated half, so there is no `releases` here: the document is the release.
@@ -138,6 +143,39 @@ A tombstone and a pack carry none, and an entry whose id matches no listing fail
 
 An absent count means unknown, and a client must not show it as zero.
 A client may show the counts and sort by them, keeps listings without counts available, and never uses the counts for resolution, installation, ownership or moderation.
+
+### Dates
+
+`published_at` and `updated_at` are derived from timestamps the entry already carries ([RFC 0058](../rfcs/0058-listing-images-and-dates.md)).
+They sit next to `id`, never inside `authored`, a release file or a pack version.
+
+| Field | Listing | Pack |
+|---|---|---|
+| `published_at` | The earliest `release_date` of all its release files, yanked ones included. | The earliest `released_at` of all its versions, retracted ones included. |
+| `updated_at` | The latest `release_date` of a release file that is not yanked, of any `release_status`. | The latest `released_at` of a version that is not retracted. |
+
+Timestamps compare as instants, and as text when two instants are equal.
+The builder copies the winning value as the source document writes it.
+
+```json
+{
+  "id": "AdvancedFlightComputer",
+  "published_at": "2026-08-02T13:18:42Z",
+  "updated_at": "2026-08-11T16:41:04Z",
+  "authored": { "...": "..." },
+  "releases": [{ "...": "..." }]
+}
+```
+
+- An entry with no version has neither field. This includes a listing whose `releases` is an empty array.
+- An entry whose every version is yanked or retracted has `published_at` and no `updated_at`.
+- A tombstone has neither field.
+
+The values follow the index, so they can move.
+A yank or a retraction can move `updated_at` back, and a backfilled older release can move `published_at` earlier.
+
+`updated_at` counts `dev` and `testing` releases, so it can show activity that a user of stable releases does not see.
+A client may show a date per release channel instead, computed from `release_status` and `release_date` of the releases in the snapshot, and `updated_at` stays the all-channel value.
 
 ### The game release list
 
@@ -189,6 +227,8 @@ Real data, taken from the `StarMap` documents under [`examples/`](../examples/) 
   "listings": [
     {
       "id": "StarMap",
+      "published_at": "2026-08-02T16:47:50Z",
+      "updated_at": "2026-08-02T16:47:50Z",
       "authored": {
         "spec_version": 1,
         "id": "StarMap",
