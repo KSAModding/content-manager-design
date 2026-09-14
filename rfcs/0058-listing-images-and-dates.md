@@ -1,7 +1,7 @@
 ---
 rfc: "0058"
 title: Listing images and dates
-status: Proposed
+status: Accepted
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-09-13
 discussion: https://github.com/KSAModding/content-manager-design/pull/58
