@@ -29,7 +29,7 @@ Every request also tells the host the reader's address, and it breaks the one-fe
 
 The text is already in the data the watcher reads.
 The GitHub release object carries `body` next to `tag_name`, `published_at` and `html_url`, and the SpaceDock version object carries `changelog`.
-On 2026-09-15 the GitHub release notes of the listed mods were between 0 and 11,550 characters long, and SpaceDock's `changelog` for AdvancedFlightComputer 0.7.5 held the same text as its GitHub release.
+On 2026-09-15 the GitHub release notes of the listed mods were between 0 and 11,551 bytes long, and SpaceDock's `changelog` for AdvancedFlightComputer 0.7.5 held the same text as its GitHub release.
 
 ## Guide-level explanation
 
@@ -66,9 +66,17 @@ When it is absent, show `changelog` as a link.
 | SpaceDock | `changelog` of the version object. |
 
 The watcher takes the text of the release authority only, removes whitespace at both ends, and writes line endings as LF.
-The limit bounds what one release adds to the snapshot, which every client downloads whole.
 A text longer than the limit is left out and not cut, because a cut can break the Markdown and drop what the author put last.
 The release file still carries `changelog`, so a client shows the link for that release, as every client does today.
+
+### Why 16 KiB
+
+The limit trades complete notes in the snapshot against the size that every client downloads whole.
+On 2026-09-15 the listed GitHub repositories had 165 releases.
+Their notes had a median of 610 bytes, 90 percent were at most 1,413 bytes, two were longer than 4 KiB, one was longer than 8 KiB (11,551 bytes, a generated list of changes), and none was longer than 16 KiB.
+So 16 KiB keeps the notes of every release seen today, and no single release can add more than 16 KiB to a snapshot that held 16 releases in 122 KB on the same day.
+A limit of 8 KiB would drop one of these notes, and 4 KiB two, for a small saving.
+A higher limit would in my opinion grow the download of every client too much.
 
 ### Text on a release pull request
 
@@ -116,7 +124,7 @@ The `changelog` of a pack version, which is already a URL or free text, does not
 
 ## Drawbacks
 
-- The snapshot grows, because every release carries its notes. On 2026-09-15 the snapshot held 14 releases in 112 KB, served as 13 KB compressed, and the 163 releases of the listed GitHub repositories carried 122 KB of notes together, about 750 characters each.
+- The snapshot grows, because every release carries its notes. On 2026-09-15 the snapshot held 16 releases in 122 KB, served as 13 KB compressed, and the 165 releases of the listed GitHub repositories carried 122 KB of notes together, 755 bytes each on average. In the snapshot these notes would add about 32 KB after compression, which is more than twice the compressed size of the snapshot today.
 - Notes edited after the first fill never reach the index, so the text and the host page can differ.
 - The index republishes author text next to the release, which falls under the same moderation path as `description`.
 
@@ -137,7 +145,7 @@ Rejected because a cut can break the Markdown and hide the end of the notes.
 
 ## Unresolved questions
 
-- Whether 16 KiB is the right limit.
+- None.
 
 ## Future possibilities
 
