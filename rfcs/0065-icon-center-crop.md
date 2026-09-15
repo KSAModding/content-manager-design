@@ -53,7 +53,16 @@ So the longer side is never more than 2048 pixels.
 An icon of 1280 by 640 pixels is valid, and an icon of 1500 by 500 pixels is not.
 The ratio limit keeps the center square at half of the image or more, so the square still shows most of the artwork.
 An icon with `width` equal to `height` meets these limits exactly when it met the limits of RFC 0058.
-The format, animation, digest and fetch rules of RFC 0058 do not change.
+
+### What stays as in RFC 0058
+
+Every other image rule of RFC 0058 applies to an icon that is not square without a change:
+
+- PNG, JPEG or WebP, read from the file signature, and no animation.
+- The byte cap of 256 KiB, the required record keys `url`, `sha256`, `width`, `height` and `size`, and the optional `license`, `attribution` and `source`.
+- `width`, `height`, `size` and `sha256` describe the whole file and not the center square, and the checks and every client compare them with the fetched bytes.
+- The fetch rules: HTTPS, at most three redirects, a public network target, no credentials, and a streamed byte limit.
+- The re-check by the watcher, caching by `sha256`, the placeholder, the setting to load no images, and showing `attribution` and `source`.
 
 ### The center square
 
