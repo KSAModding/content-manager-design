@@ -13,7 +13,7 @@ superseded-by: []
 
 ## Summary
 
-A stamped release file gets an optional `changelog_text`: the release notes of the release host, as CommonMark, copied by the watcher when it stamps the release.
+A release file gets an optional `changelog_text`: the release notes as CommonMark, copied by the watcher from the release host, or supplied on the release pull request of a listing that has no watched host.
 `changelog` keeps its meaning, the URL of the changelog.
 A client shows the text from the snapshot, offline, and shows the link when the text is absent.
 `spec_version` and `snapshot_version` stay at `1`.
@@ -38,6 +38,7 @@ On 2026-09-15 the GitHub release notes of the listed mods were between 0 and 11,
 Nothing changes.
 Write your release notes on GitHub or SpaceDock, and the watcher copies them into the index when it stamps the release.
 Notes you edit after that do not reach the index, and the link still leads to the current page.
+If your listing has no `[releases]` section, put the notes into the release pull request instead.
 
 ### For a client
 
@@ -50,7 +51,7 @@ When it is absent, show `changelog` as a link.
 
 | Field | Meaning |
 |---|---|
-| `changelog_text` | The release notes as CommonMark, at most 16 KiB of UTF-8. Absent when the host has no notes, when they are empty, or when they are longer than the limit. |
+| `changelog_text` | The release notes as CommonMark, at most 16 KiB of UTF-8. Absent when there are no notes, when they are empty, or when they are longer than the limit. |
 
 ```json
 "changelog": "https://github.com/Maximilian-Nesslauer/KSA-AdvancedFlightComputer/releases/tag/v0.7.5",
@@ -69,8 +70,16 @@ The limit bounds what one release adds to the snapshot, which every client downl
 A text longer than the limit is left out and not cut, because a cut can break the Markdown and drop what the author put last.
 The release file still carries `changelog`, so a client shows the link for that release, as every client does today.
 
-A release pull request, for a listing without `[releases]`, may carry an author-supplied `changelog_text`.
-The checks cannot re-derive that text from a host, so they check only its type and its length.
+### Text on a release pull request
+
+A listing without `[releases]` gets its releases through release pull requests (RFC 0033), and no host can be read for its notes.
+
+- **Who:** only the release pull request that creates the release file can carry `changelog_text`. That pull request passes the same ownership check as the rest of the release, so the text comes from the verified owner of the listing or from a steward.
+- **Status:** authoritative. From the merge on, it is the release's `changelog_text` like a copied one, and the rules below apply to it.
+- **The watcher:** it does not poll a listing without `[releases]`, so it never replaces this text. If the listing later names a host in `[releases]`, the watcher may fill the field only into release files of that listing that still have none.
+- **The checks:** a string, not empty after whitespace at both ends is removed, at most 16 KiB of UTF-8, with LF line endings. They cannot compare it with a host.
+
+A release that the watcher stamps never carries author-supplied text.
 
 ### When the field may change
 
