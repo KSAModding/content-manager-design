@@ -20,7 +20,7 @@ Square icons keep working exactly as before.
 
 ## Motivation
 
-RFC 0058 accepts only a square icon, so an author whose only artwork is wide, such as a banner or a screenshot, has to make a second file before the listing can have an icon.
+RFC 0058 accepts only a square icon, so an author whose only artwork is wide or tall, such as a screenshot, has to make a second file before the listing can have an icon.
 Many authors will not, and their listings show the placeholder.
 
 Most artwork keeps its subject in the middle, so the center of a wide or tall image is usually a good icon.
@@ -87,8 +87,11 @@ This replaces the icon part of this row of the errors table of RFC 0058:
 
 ### Clients that implement only RFC 0058
 
-Such a client finds an icon that is not square outside its limits, treats it as missing metadata and shows the placeholder, as RFC 0058 requires.
-The listing stays usable, so nothing breaks, and the client gains the icon once it implements this RFC.
+The client rules of RFC 0058 make a client check the fetch rules, the byte limit, the format, the animation and the record facts before it shows an image, but they do not name the pixel limits.
+So a client that implements only RFC 0058 does one of two things with an icon that is not square.
+If it also applies the pixel limits of the checks, the icon fails them, and the client shows the placeholder, because RFC 0058 treats an image that fails its rules as missing metadata.
+If it does not, it fits the whole image into the slot with its surface colour around it, by the RFC 0058 rule for a slot that is not square.
+In both cases the listing stays usable and nothing is cut, and the client shows the center square once it implements this RFC.
 
 ### Relationship to RFC 0058
 
