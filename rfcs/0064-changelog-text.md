@@ -1,15 +1,15 @@
 ---
-rfc: "0000"
+rfc: "0064"
 title: Changelog text in release files
 status: Proposed
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-09-15
-discussion:
+discussion: https://github.com/KSAModding/content-manager-design/pull/64
 supersedes: []
 superseded-by: []
 ---
 
-# RFC 0000: Changelog text in release files
+# RFC 0064: Changelog text in release files
 
 ## Summary
 
