@@ -13,7 +13,7 @@ superseded-by: []
 
 ## Summary
 
-An icon from [RFC 0058](0058-listing-images-and-dates.md) no longer has to be square.
+An icon from [RFC 0058](0058-listing-images-and-dates.md) no longer has to be square, as long as its longer side is at most twice its shorter side.
 A client shows the square in the center of the icon, with the length of its shorter side, and the checks warn instead of rejecting.
 Square icons keep working exactly as before.
 `spec_version` and `snapshot_version` stay at `1`.
@@ -31,7 +31,7 @@ Every client can compute that square the same way, so the listing still looks th
 ### For an author
 
 A square icon of 512 by 512 pixels or more is still the best choice, because you decide exactly what shows.
-If you only have a wide or tall image, you can use it as the icon.
+If you only have a wide or tall image, you can use it as the icon when its longer side is at most twice its shorter side, which fits a screenshot of 16 by 9.
 Clients then show the square in its middle: for a wide image the full height, cut on the left and the right; for a tall image the full width, cut at the top and the bottom.
 The checks tell you which part clients show, so you can decide whether a square file of your own is worth it.
 
@@ -47,8 +47,11 @@ This replaces the `icon` row of the limits table of RFC 0058.
 
 | Role | Records | Pixels | Bytes |
 |---|---|---|---|
-| `icon` | 0 or 1 | the shorter side 256 to 1024, the longer side at most 2048 | at most 256 KiB |
+| `icon` | 0 or 1 | the shorter side 256 to 1024, the longer side at most twice the shorter side | at most 256 KiB |
 
+So the longer side is never more than 2048 pixels.
+An icon of 1280 by 640 pixels is valid, and an icon of 1500 by 500 pixels is not.
+The ratio limit keeps the center square at half of the image or more, so the square still shows most of the artwork.
 An icon with `width` equal to `height` meets these limits exactly when it met the limits of RFC 0058.
 The format, animation, digest and fetch rules of RFC 0058 do not change.
 
@@ -70,7 +73,7 @@ This replaces the icon part of this row of the errors table of RFC 0058:
 
 | Condition | Result |
 |---|---|
-| An icon whose shorter side is below 256 or above 1024 pixels, or whose longer side is above 2048 pixels | Reject. |
+| An icon whose shorter side is below 256 or above 1024 pixels, or whose longer side is more than twice its shorter side | Reject. |
 | An icon whose `width` differs from its `height` | Warning. |
 
 ### Clients that implement only RFC 0058
@@ -88,6 +91,7 @@ The checks of the index have to accept the new limits before any listing can use
 
 - The center can cut off what matters, such as text or a logo near an edge. The author sees that only in the warning of the checks or in a client.
 - A wide icon of up to 2048 pixels makes a client decode more pixels than it shows.
+- The ratio limit still rejects a wide banner, so its author still has to make a second file.
 - There are two ways to supply an icon, and a square file stays the better one, which the listing guidance has to say.
 
 ## Alternatives
@@ -104,12 +108,17 @@ Rejected because a wide image becomes a thin strip in a list row of 48 pixels.
 The author decides what shows.
 Rejected for now because it adds a key that most authors never need, and the center is the right choice for most artwork.
 
+**Accept any aspect ratio within the side limits.**
+A banner of 2048 by 256 pixels would also be a valid icon.
+Rejected because the center square of such an image is a small part of it and rarely shows the subject, and because a ratio limit can be relaxed later by an amendment, while a stricter limit later would make valid listings invalid.
+
 **Keep rejecting icons that are not square.**
 Rejected because it leaves listings without an icon although their author has usable artwork.
 
 ## Unresolved questions
 
-- Whether the longer side of 2048 pixels and the byte cap of 256 KiB are right for a wide icon.
+- Whether the byte cap of 256 KiB is enough for a wide icon of up to 2048 by 1024 pixels.
+- Whether a ratio of 2 to 1 is the right limit. A later RFC can relax it without a break.
 
 ## Future possibilities
 
