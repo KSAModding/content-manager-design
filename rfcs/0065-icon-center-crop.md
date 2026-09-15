@@ -1,15 +1,15 @@
 ---
-rfc: "0000"
+rfc: "0065"
 title: Center crop for icons that are not square
 status: Proposed
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-09-15
-discussion:
+discussion: https://github.com/KSAModding/content-manager-design/pull/65
 supersedes: []
 superseded-by: []
 ---
 
-# RFC 0000: Center crop for icons that are not square
+# RFC 0065: Center crop for icons that are not square
 
 ## Summary
 
