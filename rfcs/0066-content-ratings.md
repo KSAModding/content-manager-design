@@ -1,15 +1,15 @@
 ---
-rfc: "0000"
+rfc: "0066"
 title: Content ratings
 status: Draft
 authors: ["@LaurensDeV"]
 created: 2026-09-15
-discussion:
+discussion: https://github.com/KSAModding/content-manager-design/pull/66
 supersedes: []
 superseded-by: []
 ---
 
-# RFC 0000: Content ratings
+# RFC 0066: Content ratings
 
 ## Summary
 
