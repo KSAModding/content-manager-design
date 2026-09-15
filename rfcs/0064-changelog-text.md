@@ -72,14 +72,22 @@ The release file still carries `changelog`, so a client shows the link for that 
 A release pull request, for a listing without `[releases]`, may carry an author-supplied `changelog_text`.
 The checks cannot re-derive that text from a host, so they check only its type and its length.
 
-### Immutability
+### When the field may change
 
-`changelog_text` is frozen at stamp time, like the `listing` block of RFC 0031: display history, not an amendable surface.
+A release file either has `changelog_text` or has not.
 
-One exception, of the same kind as `download.mirrors` in RFC 0033: the watcher may add `changelog_text` once to a release file that has none, when the authority reports non-empty notes within the limit.
-It never changes or removes a value that is present.
-This fills releases that were stamped before this RFC, and releases whose notes were added or could not be fetched at stamp time.
-The amendment check accepts this addition from the watcher and from no one else.
+| Change | Rule |
+|---|---|
+| Present when the release file is created | Allowed: copied by the watcher from the authority, or supplied on a release pull request. |
+| Absent, later present | Allowed once, only as a commit by the watcher, and only when the listing names that host as its authority in `[releases]`, the host still lists the release under the same normalized version, and its notes are not empty and within the limit. |
+| Present, later a different text | Never. |
+| Present, later absent | Never, through the watcher or a pull request. Text that has to go is handled by the moderation path of RFC 0033. |
+
+The fill uses the release list the watcher already fetches on a tick, so it costs no extra request, and a release file that already has the field is not checked again.
+Notes longer than the limit stay absent, and they can still be filled later if the author shortens them on the host.
+The watcher commits the fill directly, like `download.mirrors` in RFC 0033.
+The amendment check rejects every pull request that adds, changes or removes `changelog_text` in an existing release file.
+So after the first present value, the text is frozen, like the `listing` block of RFC 0031: display history, not an amendable surface.
 
 ### Client behavior
 
