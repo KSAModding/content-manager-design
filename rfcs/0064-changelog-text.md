@@ -1,7 +1,7 @@
 ---
 rfc: "0064"
 title: Changelog text in release files
-status: Proposed
+status: Accepted
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-09-15
 discussion: https://github.com/KSAModding/content-manager-design/pull/64
