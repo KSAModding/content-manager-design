@@ -1,15 +1,15 @@
 ---
-rfc: "0000"
+rfc: "0072"
 title: Shorter version forms on a release tag
 status: Proposed
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-09-21
-discussion: https://github.com/KSAModding/content-manager-design/pull/0000
+discussion: https://github.com/KSAModding/content-manager-design/pull/72
 supersedes: []
 superseded-by: []
 ---
 
-# RFC 0000: Shorter version forms on a release tag
+# RFC 0072: Shorter version forms on a release tag
 
 ## Summary
 
