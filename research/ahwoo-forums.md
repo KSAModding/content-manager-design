@@ -98,3 +98,32 @@ No thread carried the prefix at the time of reading, and the listing with `?pref
 The filter works on the feed too: `index.rss?prefix_id=9` returned only the 12 Gameplay threads, so `index.rss?prefix_id=23` is a feed of new packs.
 A thread has one prefix, so a pack thread carries Modpack and no category prefix.
 The prefix tells the content type `modpack`, and the tag prefill has nothing to map for a pack.
+
+## What the three forum jobs can use today
+
+The two jobs that run on a schedule assume the Ahwoo team agrees to a reader.
+Until then a steward opens the linked thread by hand when a job needs it, and no tool fetches forum pages.
+
+**Moderation tripwire ([RFC 0033](../rfcs/0033-content-index.md)).**
+One sitemap read per run lists every thread id a guest can see.
+A listing whose thread id is missing gets one read of its thread URL: 200 or 301 keeps it, the Ahwoo 404 flags it for a steward, and any other answer waits for the next run, up to 3 runs in a row.
+That is one request per run, plus one per missing thread.
+The banned author half is open: member pages are public (`/members/maxi.153/` answers 200), but no banned member was found, so what a guest sees for a ban is not verified.
+A lock cannot be a trigger today, because it was not observed.
+
+**Dispute tiebreaker ([RFC 0031](../rfcs/0031-content-metadata-format.md), RFC 0033).**
+The thread page gives `datePublished`, the thread id and the author with the member id, which is enough to decide who was first.
+A dispute is rare and a steward decides it, so this needs no automation.
+
+**Tag prefill ([spec/tags.md](../spec/tags.md)).**
+The `label` span in the `h1` of the thread page gives the prefix name, which maps through `forum_prefix` in `tags.toml`.
+`og:title` is not a source, because it is the plain title when a thread has no prefix, and a title can contain ` - `.
+That is one request when a person runs the listing tool.
+9 of the 74 Mod Releases threads, one of them the rules thread, have no prefix and give no tag.
+
+## What to ask the Ahwoo team
+
+1. Agreement under clause 3.1 to one scheduled low-rate reader: the sitemap once a day, and one thread page when a listed thread is missing from the sitemap or a person runs the listing tool, with a user agent that names the KSAModding organization.
+2. What a guest sees for a banned author, a locked thread and a thread that a moderator deleted, or that we should not read these.
+
+Nothing else: no API key and no new endpoint.
