@@ -1,0 +1,99 @@
+# Vehicles and saves, and the mods they need
+
+Verified against game build **2026.9.10.5438**, and for the Unscience case against `meow-sci/unscience` at commit `93c9a50`.
+
+## Answer
+
+A save and a vehicle are each a folder with a `meta.toml` and one XML file, under the user data root.
+Neither records which mods it needs, and neither records a mod version.
+Both name content by bare ids: part templates, module templates, substances, celestial bodies and characters.
+Those ids carry no mod prefix, so the file alone cannot say which mod provides them.
+
+The game checks nothing before it loads.
+A part template or an EVA character that is not installed throws an exception that nothing catches, and the game ends.
+A missing roster character does the same later in play.
+Other missing content is logged and dropped.
+Mod state that a mod keeps outside the game's XML is invisible to the game, and to anybody reading the XML.
+
+## Where they live
+
+| Type | Folder | Files |
+|---|---|---|
+| Save | `<Documents>/saves/<name>/` (`GameSaves.SaveFolderPath`) | `meta.toml`, `universe.xml` |
+| Vehicle | `<Documents>/Vehicles/<name>/` (`VehicleSaves.SaveFolderPath`) | `meta.toml`, `vehicle.xml` |
+| Stock vehicle | `Content/Core/defaultvehicles/<name>/` (`DefaultVehicleSaves.SaveFolderPath`) | `meta.toml`, `vehicle.xml` |
+
+`<Documents>` is `Constants.DocumentsFolderPath`, the user data root that [RFC 0035](../rfcs/0035-content-install-descriptor.md) calls `user-data`.
+Note the casing: `saves` is lower case and `Vehicles` is not, which matters on a case-sensitive file system.
+`GameSaves.CheckDirectories` and `VehicleSaves.CheckDirectories` create both folders at start.
+
+The stock folder belongs to the game install.
+`VehicleTemplate.OnDataLoad` reads the part tree of a vehicle that a system file places only from this folder (`DefaultVehicleSaves.FindSave`), so a mod cannot ship such a vehicle from its own folder.
+Published vehicles therefore install only under `Vehicles/`.
+
+A StarMap instance path overrides `Constants.DocumentsFolderPath`, so saves and vehicles move with the instance (see [research/starmap.md](starmap.md)).
+The user mods folder and `manifest.toml` move with it, so a save and the mods enabled for it are in the same instance.
+Mods under `<GameDir>/Content/` do not move, so every instance shares them (see [research/ksa-mod-loading.md](ksa-mod-loading.md)).
+
+## The name is the identity, not the folder
+
+`UncompressedSave.FromDirectory` and `UncompressedVehicleSave.FromDirectory` take the `name` from `meta.toml` as `GameSave.Id`.
+The folder name is used only to find the files.
+
+Normally both are equal, because `UncompressedSave.Make` writes to a folder named after the name.
+When they differ, `Overwrite` deletes the folder the save came from and writes a new one named after `name`, so the save moves.
+
+The lists are `LookupCollection`s created with `allowReplacing: true`.
+Two folders whose `meta.toml` carry the same name show up as one entry, and the one read last wins, without a message.
+
+A new name passes `SaveName.Sanitize`: letters and digits as `char.IsLetterOrDigit` defines them (so not only ASCII), space, `-` and `_`, at most 64 characters, single spaces, and a trailing `_` on a Windows device name.
+A name that nobody sanitized, for example in a downloaded folder, is not checked on read.
+
+## `meta.toml`
+
+`SaveMetaData` is the same class for saves and vehicles.
+A real file has this shape (values replaced):
+
+```toml
+name = "Example Save"
+created = 2026-09-15T09:30:25.8301416
+updated = 2026-09-15T09:30:25.8501341
+version = "v2026.9.10.5438"
+systems = [ "Sol", ]
+```
+
+| Field | Written by | Read by |
+|---|---|---|
+| `name` | The name given at save time. | Becomes `GameSave.Id`. |
+| `created`, `updated` | `DateTime.UtcNow`; `SaveMetaData.Write` sets `updated`. | Shown and sorted in the load dialog. |
+| `version` | `SaveMetaData.Write` stamps `VersionInfo.Current`, with the leading `v`. | Parsed with `VersionInfo.Parse(..., throwExceptions: false)`, then shown in the load dialog and sorted there as a string. Never compared with the running game. |
+| `systems` | The id of `Universe.CurrentSystem` only. | Only `ToConsole`. Nothing checks it on load. |
+
+There is no mod list, no mod version, no author and no description.
+The game version is the one version the game records, and it only displays it (see [research/ksa-versioning.md](ksa-versioning.md)).
+
+## `universe.xml` and `vehicle.xml`
+
+Both are written by `XmlSerializer` through `XmlHelper.SerializeWithoutNaN`.
+`universe.xml` is a `UniverseData`: `GameTime`, `CameraData`, one `System` with an `Id` and a `Vehicle` element per vehicle (`VehicleData`), and the `KittenRoster`.
+`vehicle.xml` is a `VehicleSaveData`: the `Id` (the name), the part tree under `RootPartRef`, sequences, fuel links, `LaunchGameTime`, and a `Character` for a kitten.
+
+`VehicleData` extends `VehicleSaveData`, so a vehicle inside a save has the same part tree as a vehicle file, plus orbit, flight computer and resource state.
+Five real saves were 430 to 670 KB, five real vehicles 78 to 180 KB.
+
+### The content a file names
+
+| Content | Where in the file | Resolved by | When it is not installed |
+|---|---|---|---|
+| Part template | `InstanceOf` on `RootPartRef`, `PartRef` and `SubPartRef` | `PartInstance.GetTemplate`, which calls `ModLibrary.Get<PartTemplate>`, from the `Part` constructor | `ModLibrary.Get` throws `NullReferenceException`. |
+| Module state | Module elements such as `TankData` or `EngineController`, with an `InstanceOf` | `ModuleList.ApplySaveData`, from `PartTree.Deserialize` | Warning "matched no module", the state is discarded. |
+| Substance | `SubstancePhaseId` on a `Mole` inside `TankData` | `SubstanceLibrary.TryGetSubstancePhase`, from `Tank.ApplySaveData` | Error logged, that substance is left out of the tank. |
+| Parent body (saves) | `ParentBody` `Id` of each vehicle | `CelestialSystem.Get`, from `CelestialSystem.DeserializeSave` | Error logged, the vehicle is not created. |
+| Celestial system (saves) | `System/Id`, and `systems` in `meta.toml` | Nothing. | `Universe.DeserializeSave` loads the vehicles into whatever system runs. |
+| EVA character | `Character` on a vehicle | `ModLibrary.Get<CharacterReference>`, from the `KittenEva` constructor | `ModLibrary.Get` throws `NullReferenceException`. |
+| Roster character (saves) | `Character` on each `Kitten` of the roster | `ModLibrary.Get<CharacterReference>`, from the `KittenRenderable` constructor (`IVASeat`) and the `KittenEva` constructor (`EVADoor`) | Throws later in play, when the seat renders or the kitten goes on EVA, not at load. |
+
+Two properties of these ids matter for any dependency check:
+
+- **No id names its mod.** `SerializedId.Mod` is set when a template loads, but it is `XmlIgnore`, so the providing mod is not written. Part ids are a single global namespace: `SerializedCollection.Register` keeps the first template with an id and silently drops any later one.
+- **Mod code cannot add its own records to these files.** `XmlHelper` registers module save types only from the game assembly (`Assembly.GetExecutingAssembly`). A mod that keeps its own state must patch that or write a file of its own. Unknown elements and attributes are skipped by `XmlSerializer` by default, and the game attaches no `UnknownElement` handler, so such data is dropped on load. `UncompressedSave.Write` deletes the whole folder and writes it new, so the next save also deletes any extra file in the folder.
