@@ -97,3 +97,23 @@ Two properties of these ids matter for any dependency check:
 
 - **No id names its mod.** `SerializedId.Mod` is set when a template loads, but it is `XmlIgnore`, so the providing mod is not written. Part ids are a single global namespace: `SerializedCollection.Register` keeps the first template with an id and silently drops any later one.
 - **Mod code cannot add its own records to these files.** `XmlHelper` registers module save types only from the game assembly (`Assembly.GetExecutingAssembly`). A mod that keeps its own state must patch that or write a file of its own. Unknown elements and attributes are skipped by `XmlSerializer` by default, and the game attaches no `UnknownElement` handler, so such data is dropped on load. `UncompressedSave.Write` deletes the whole folder and writes it new, so the next save also deletes any extra file in the folder.
+
+## What the game does with content that is not installed
+
+**At start**, `GameSaves.Refresh` and `VehicleSaves.Refresh` read every folder, and the constructors parse every XML file.
+Parsing does not resolve templates, so a missing mod is not noticed here.
+`UncompressedSave.FromDirectory` catches exceptions from `universe.xml` and skips that save.
+It reads `meta.toml` outside the `catch`, and `GameSaves.Refresh` catches nothing, so a save `meta.toml` that Tomlet cannot parse stops the game from starting.
+`UncompressedVehicleSave.FromDirectory` catches nothing, and neither does `VehicleSaves.Refresh`.
+So a `vehicle.xml` that the serializer cannot read stops the game from starting, and so does a missing `vehicle.xml` (`VehicleSaveData.LoadFrom` throws), for example after a half-finished install.
+A folder without `meta.toml` is skipped with a warning in both cases.
+
+**Loading a save**, `UncompressedSave.Load` calls `Universe.DeserializeSave`.
+That first destroys the running vehicles (`CelestialSystem.DestroyAllVehicles`), then builds each vehicle through `Vehicle.CreateVehicleFromSaveGameData` and `PartTree.Deserialize`.
+A missing part template throws in the middle of that.
+There is no `catch` on the path, not in `Program.Main` either, and the only unhandled exception handler in the decompiled assemblies (in the static constructor of `Network`) only shuts networking down.
+The process ends.
+
+**Loading a vehicle** in the editor or the launch menu calls `UncompressedVehicleSave.Load(IViewport)`, which runs the same `PartTree.Deserialize` with the same result.
+
+**Version**: nothing compares the saved `version` with the running game, and there is no migration.
