@@ -14,7 +14,7 @@ superseded-by: []
 ## Summary
 
 A merged listing edit to the compatibility, the loader or the dependencies now reaches the newest release, in both directions.
-The watcher applies it as an amendment of the verified owner ([RFC 0079](https://github.com/KSAModding/content-manager-design/pull/79)), once the edit has stood for 24 hours and no newer release came in the meantime.
+The watcher applies it as an amendment of the verified owner ([RFC 0079](https://github.com/KSAModding/content-manager-design/pull/79)) on its next tick, unless a release pull request of the listing is open.
 Older releases keep their stamp, and the comment on the listing pull request says which release an edit reaches.
 
 ## Motivation
@@ -30,7 +30,8 @@ With RFC 0079 such an amendment may widen as well as narrow, so the listing edit
 ## Guide-level explanation
 
 Edit your listing as before.
-At least a day after your last edit, your newest release gets the same change, and older releases keep their stamp.
+With the next watcher tick after the merge, your newest release gets the same change, and older releases keep their stamp.
+The comment on your listing pull request says which release that is, before you merge.
 
 | You change in the listing | Newest release | Older releases |
 |---|---|---|
@@ -38,8 +39,8 @@ At least a day after your last edit, your newest release gets the same change, a
 | Raise or lower `game_min` | Gets the new bound. | Unchanged. |
 | Remove a dependency you added by mistake | Loses it. | Unchanged. |
 
-If you edit the listing for a release that is not out yet, tag it within the day or open its release pull request first.
-Otherwise the edit reaches the release before it too, and you change it back with another edit or an amendment pull request.
+If you edit the listing for a release that is not out yet, tag it first, or open its release pull request first when your listing has no `[releases]`.
+Otherwise the edit reaches the current release too, and you change it back with another edit or an amendment pull request.
 An older release gets a change through an amendment pull request, for example with `tools/amend.py`.
 
 ## Reference-level explanation
@@ -70,13 +71,10 @@ The watcher runs the pass on every tick for every listing that is neither delist
 A dispute contests the ownership this rests on.
 A merge to the authored repository already dispatches a tick, so no new trigger is needed, and the pass writes only when the file differs from its result.
 
-An edit waits while one of these holds:
+An edit waits while the generated repository has an open pull request that adds a release file of the listing, so an edit made for a release that is already on its way lands in that release, and from then on it is older than the most recent stamp.
 
-- The last commit that changed the listing document on the default branch is less than 24 hours old. Every further edit starts the time again.
-- The generated repository has an open pull request that adds a release file of the listing.
-
-So an edit made for the next release lands in that release, and from then on it is older than the most recent stamp.
-The 24 hours are a tuning parameter.
+There is no waiting time otherwise.
+An edit that reaches the current release by mistake is undone by the next edit, because RFC 0079 lets an amendment go in both directions, and the comment on the listing pull request names the release before the merge.
 
 ### Authority
 
@@ -114,7 +112,7 @@ No field is added or changes its meaning, so `spec_version` and `snapshot_versio
 
 ## Drawbacks
 
-- An edit made for a release that is neither tagged within 24 hours nor opened as a release pull request reaches the release before it too, and the author changes it back.
+- An edit made for a release that is not tagged yet reaches the current release too, and the author changes it back.
 - A listing that stamps a release, `dev` included, soon after most edits seldom gets an edit onto its target, and the owner amends by pull request.
 - A release file changes after publish without a pull request of its own, and its audit trail is the watcher's commit plus the listing pull request.
 
@@ -126,8 +124,9 @@ Rejected because an edit is knowledge about the current build, and nobody checke
 **Compare the live listing with the target release file.**
 Rejected because a release that becomes the target through a yank would get the edits made for the yanked release, and every listing would get all of its older edits on the first tick.
 
-**Apply it on the first tick after the merge.**
-Rejected because an author who edits the listing before tagging a release would change the release before it.
+**Wait a fixed time, such as 24 hours, before applying an edit.**
+It keeps an edit for a release that is tagged within that time off the current release.
+Rejected because it protects only an author who tags within that time, it delays every correction by the same time, and an edit that lands on the wrong release can be undone with another edit.
 
 **The watcher opens an amendment pull request.**
 Rejected because the indexer bot owns no listing, so its pull request could never verify ownership and would always wait for a steward.
