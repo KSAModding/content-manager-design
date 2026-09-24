@@ -1,6 +1,6 @@
 ---
 rfc: "0072"
-title: Shorter version forms on a release tag
+title: Shorter and longer version forms on a release tag
 status: Proposed
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-09-21
@@ -9,27 +9,28 @@ supersedes: []
 superseded-by: []
 ---
 
-# RFC 0072: Shorter version forms on a release tag
+# RFC 0072: Shorter and longer version forms on a release tag
 
 ## Summary
 
-A release tag may name one or two components instead of three.
-The index fills the missing components with zero, so `0.5` is stored as `0.5.0` and `1` as `1.0.0`, and the stored `version` stays a full [SemVer 2.0.0](https://semver.org/) version exactly as [RFC 0031](0031-content-metadata-format.md) defines it.
-Nothing downstream changes, because every value a client reads is still a normalized triple.
+A release tag may name any number of numeric components instead of exactly three.
+The index fills a shorter version with zero, so `0.5` is stored as `0.5.0` and `1` as `1.0.0`, and keeps a longer one as it is, so `1.2.3.4` stays `1.2.3.4`.
+A version with up to three components is a [SemVer 2.0.0](https://semver.org/) version exactly as [RFC 0031](0031-content-metadata-format.md) defines it, and a longer one orders component by component.
 `spec_version` and `snapshot_version` stay at `1`.
 
 ## Motivation
 
-RFC 0031 requires the tag itself to parse as SemVer 2.0.0, so a tag with fewer than three components is refused and the release can never be stamped.
+RFC 0031 requires the tag itself to parse as SemVer 2.0.0, so a tag with fewer or more than three components is refused and the release can never be stamped.
 
 That is stricter than what the index needs, and it is refusing real content today.
 The Compendium listing carries the tags `0.5`, `0.6`, `0.7`, `0.8` and `0.9`, and the watcher reports each of them as a version that does not parse.
 A second mod offered nineteen releases and not one of them could be stamped for the same reason.
 Both authors write a version that every reader understands and that orders without any ambiguity.
+The four-component form is just as common, because it is the form .NET uses for assembly versions, and a mod author who tags the version of their assembly is refused as well.
 
 What the index needs from a version is a total order.
 A client asks whether there is a newer release, a dependency bound asks whether a version is inside `min` and `max`, and the snapshot orders the releases of a listing.
-`0.5` answers all three the moment it is read as `0.5.0`, so the refusal buys nothing.
+`0.5` answers all three the moment it is read as `0.5.0`, and `1.2.3.4` answers them when its components are compared one by one, so the refusal buys nothing.
 
 This project already resolves a shorter form elsewhere rather than refusing it.
 [RFC 0017](0017-game-version-ordering-and-compatibility.md) accepts a game version written as a month, `2026.7`, and resolves it to a revision, because an author writes what the game shows them.
@@ -45,8 +46,8 @@ SemVer is used here as an ordering and never as a promise.
 ### For an author
 
 Tag your release the way you already do.
-`0.5`, `v0.5`, `1`, `2.3.4` and `1.0.0-rc.1` are all accepted.
-The index stores `0.5` as `0.5.0` and `1` as `1.0.0`, and that is the version a player sees in a client and the version a dependency bound is compared against.
+`0.5`, `v0.5`, `1`, `2.3.4`, `1.2.3.4` and `1.0.0-rc.1` are all accepted.
+The index stores `0.5` as `0.5.0` and `1` as `1.0.0`, keeps `1.2.3.4` as it is, and that is the version a player sees in a client and the version a dependency bound is compared against.
 
 Two things follow from that, and both are worth knowing before you pick a tag.
 
@@ -58,8 +59,8 @@ A date or a word is not a version, and it is still refused, because nothing can 
 
 ### For a client
 
-Nothing changes.
-Every `version` in the index is a normalized SemVer 2.0.0 version, as it was before.
+A version with up to three components is a normalized SemVer 2.0.0 version, as it was before.
+A version with more components orders by the rule below, and a client has to learn that rule to read it.
 
 ## Reference-level explanation
 
@@ -67,7 +68,7 @@ Every `version` in the index is a normalized SemVer 2.0.0 version, as it was bef
 
 This replaces the parsing half of the `version` row of RFC 0031, and nothing else in that row.
 
-A tag is read as an optional leading `v`, then one, two or three numeric components separated by `.`, then the optional pre-release and build parts of SemVer 2.0.0.
+A tag is read as an optional leading `v`, then one or more numeric components separated by `.`, then the optional pre-release and build parts of SemVer 2.0.0.
 A numeric component is `0` or a number without a leading zero, as SemVer requires.
 
 | Tag | Stored `version` |
@@ -79,12 +80,15 @@ A numeric component is `0` or a number without a leading zero, as SemVer require
 | `1.2-rc.1` | `1.2.0-rc.1` |
 | `1.2+build.7` | `1.2.0+build.7` |
 | `2026.9` | `2026.9.0` |
-| `0.5.0.1` | refused, four components |
+| `1.2.3.4` | `1.2.3.4` |
+| `v0.5.0.1-beta` | `0.5.0.1-beta` |
 | `01.2.3` | refused, a leading zero |
 | `latest` | refused, not a version |
 
-A missing component is filled with `0` before anything else reads the value.
-The pre-release and build parts keep the meaning and the precedence SemVer 2.0.0 gives them, so a filled version orders against every other version by the same rule as before.
+A missing component is filled with `0` before anything else reads the value, up to three components, and a longer version keeps all of its components.
+Two versions compare their numeric components from the left, and a component that one of them does not have counts as `0`, so `1.2.3` equals `1.2.3.0` and `1.2.3.1` is newer than `1.2.3`.
+Then the pre-release part decides, with the precedence SemVer 2.0.0 gives it, and the build part never orders.
+For two versions of three components this is exactly the SemVer order, so every version the index stamped before orders as before.
 
 `2026.9` is in the table because it is accepted as a version, and it is worth saying plainly that it is not a date to the index.
 It is stored as `2026.9.0` and ordered against the other releases of that listing, and it has no relation to a game version, which RFC 0017 governs separately.
@@ -97,7 +101,7 @@ The error names both tags, because an author who tagged `0.5` and later `0.5.0` 
 
 ### What does not change
 
-- The stored `version` is a full SemVer 2.0.0 version, so `version_scheme` stays `semver` and ordering is unchanged.
+- `version_scheme` stays `semver`, because the order above is the SemVer order extended to more components, and no stored version changes.
 - A version that cannot be read as a version at all is still refused at publish time, with the error in front of the author.
 - `release_status` is still derived from the host flag and the pre-release part.
 - The authored dependency bounds of RFC 0031 are written as versions and compared against the stored value, so an author who writes `min = "0.5"` means `0.5.0`, by the same filling rule.
@@ -106,12 +110,13 @@ The error names both tags, because an author who tagged `0.5` and later `0.5.0` 
 
 An author whose tags were refused has releases the index never stamped.
 The watcher moves forward and stamps what appears after the newest release it already stamped, so it does not reach back by itself.
-Those releases reach the index through the backfill the index already has, which a steward starts, and this RFC adds no new mechanism for it.
+Those releases reach the index through `since` under `[releases]`, which the author sets ([RFC 0079](https://github.com/KSAModding/content-manager-design/pull/79)), and this RFC adds no new mechanism for it.
 
 ## Drawbacks
 
 - There is more than one way to write the same version, so two authors can tag the same release differently. The stored value is the same, and a client never sees the tag, so the cost is a reader comparing a tag against a version and finding them different.
-- An author who wants four components, such as a build counter, is still refused, and this RFC does not help them. That is deliberate, because a fourth component has no defined precedence in SemVer.
+- A client that reads exactly three components, as Borea's `ModVersion` does today, cannot read a longer version and shows that release in the unknown state of RFC 0031 until it learns the rule.
+- `1.2.3` and `1.2.3.0` are the same version, so the second tag is refused like `0.5.0` after `0.5`.
 - Filling with zero is a decision made for the author. An author who meant `0.5` to name the whole `0.5` line, rather than one release in it, gets a release named `0.5.0`.
 
 ## Alternatives
@@ -132,10 +137,10 @@ Rejected because every consumer would have to repeat the filling rule, and any c
 RFC 0031 leaves that door open for a future RFC.
 Rejected for this problem, because these tags are SemVer in every respect except the number of components, and a second scheme would mean two orderings to define and two to implement, for versions that already order.
 
+**Accept four components as build metadata, so `1.2.3.4` becomes `1.2.3+4`.**
+It keeps every stored version inside SemVer 2.0.0.
+Rejected because build metadata never orders, so `1.2.3.4` and `1.2.3.5` would be the same version and the second one would be refused.
+
 ## Unresolved questions
 
 - Whether the checks should note a shorter tag on a listing, so an author learns the stored form without reading this document. A note costs an author nothing and might prevent the collision between `0.5` and `0.5.0`, and it also adds noise for an author who tags this way on purpose.
-
-## Future possibilities
-
-- A fourth component, if a loader or a mod ever needs one, which would need a precedence rule of its own and therefore its own RFC.
