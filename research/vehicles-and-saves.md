@@ -137,3 +137,59 @@ So the code shows no path by which removing only Unscience ends the game.
 Why the reported save failed, the decompiled code cannot answer.
 What Unscience writes into `universe.xml` is decided by the mod's own code, and the save itself was not available.
 Two consequences hold either way: the mod's own check runs only while the mod is installed, and a save made again without the mod loses `unscience.json` without a message.
+
+## What could identify a vehicle or a save
+
+For a mod the game forces the id, because `Mod.MakeUsing` uses the folder name.
+For a save or a vehicle the game forces nothing: the name in `meta.toml` is its identity inside the game, and the folder only has to match it.
+
+The two naming rules do not fit each other:
+
+| | `SaveName` (game) | RFC 0031 id |
+|---|---|---|
+| Characters | Unicode letters and digits, space, `-`, `_` | ASCII letters and digits, `-`, `_`, `.` |
+| Length | 1 to 64 | 1 to 64 |
+| Case | Compared through `KeyHash` (not verified for case) | Case-insensitive |
+
+Real names contain spaces, and every real save and vehicle checked here had one.
+So an RFC 0031 id cannot be the save name in general.
+The id can be an index id in the global namespace, like a pack's, while the install folder comes from `name` in the archive's `meta.toml`.
+
+Two published saves with the same name collide in one instance, on disk and in the game's list.
+
+## Facts for each point of #71
+
+**Read from the file, declared, or both.**
+The file names content ids, never mods, and a part id does not say which mod provides it.
+Mapping ids to mods needs the asset files of the mods, which the index does not hold and a watcher would have to download for every mod.
+Mod state outside the XML (`unscience.json`) and mods without content (code only) leave no id at all.
+A mod that a player generated locally, such as a Parts Now folder, is in no index, so a publisher cannot declare it as a dependency a client can resolve, and a client can only report its ids as missing.
+The ids can still check a declaration: a client that has the game and the mods installed can list the part templates, characters and bodies that neither the game nor the installed mods provide.
+
+**What a client does when a mod is missing.**
+The game refuses nothing.
+A missing part template or EVA character ends the process, a missing roster character ends it later in play; a missing body, substance or module drops that piece with only a log line; a missing mod without ids loses its state silently.
+So "install and warn" can mean a crash the player cannot explain, which is the reported case.
+
+**A version per mod, or only an id.**
+The game records no mod version, and no mod version exists on disk (see [research/ksa-mod-loading.md](ksa-mod-loading.md)).
+A mod update that renames or removes a part template breaks a save exactly as a missing mod does.
+The only version in the file is the game build in `meta.toml`.
+
+**Which type first, and one shape or two.**
+Both types use the same `SaveMetaData`, the same folder layout and the same part tree.
+A vehicle's needs are its part templates, module templates, substances and at most one character.
+A save adds the system, bodies, the roster, every vehicle in it, and mod state that a mod may keep beside it.
+
+**What identifies a vehicle or a save.**
+The name in `meta.toml` is the game's identity, and the folder should match it.
+It allows spaces and non-ASCII letters, which an RFC 0031 id does not.
+
+## Recommendation
+
+- **Declared, checked against the file.** The publisher declares `[[dependencies]]` with the shape and kinds mods already use. A client checks the declaration against the ids in the file where it can, and warns about ids nothing installed provides. The watcher cannot map ids to mods, so it does not try.
+- **Resolve, do not only warn.** Required dependencies install with the vehicle or save, as RFC 0025 already describes. When one is unavailable, the client warns and says that loading may end the game. Blocking stays reserved for incompatible, as everywhere else.
+- **Versions as bounds.** Dependencies take the same optional `min` and `max` as mod dependencies, with a `min` as the recommended default. The build in `meta.toml` is a fact the watcher can read for `game_min`.
+- **Vehicles first, one shape.** One document shape for both types, differing in `type` and the folder. Vehicles first, because their needs are almost all visible in the file. Saves second, with the note that mod state beside the file is never visible.
+- **Install in one step.** A client unpacks a vehicle or save into a temporary folder, checks that both files are there and parse, and then moves the folder into place in one step. A half-written folder stops the game from starting.
+- **Id and folder apart.** The id follows RFC 0031 in the global namespace. The install folder is the `name` from `meta.toml`, which the watcher reads from the archive and checks: it passes `SaveName.IsSanitized`, and the folder in the archive matches it. A client does not overwrite a folder of that name that it did not install.
