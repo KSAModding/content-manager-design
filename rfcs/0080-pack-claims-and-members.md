@@ -1,15 +1,15 @@
 ---
-rfc: "0000"
+rfc: "0080"
 title: Pack claims, members, and outdated packs
 status: Proposed
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-09-23
-discussion:
+discussion: https://github.com/KSAModding/content-manager-design/pull/80
 supersedes: []
 superseded-by: []
 ---
 
-# RFC 0000: Pack claims, members, and outdated packs
+# RFC 0080: Pack claims, members, and outdated packs
 
 ## Summary
 
