@@ -1,15 +1,15 @@
 ---
-rfc: "0000"
+rfc: "0081"
 title: Listing edits reach the newest release
 status: Proposed
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-09-23
-discussion:
+discussion: https://github.com/KSAModding/content-manager-design/pull/81
 supersedes: []
 superseded-by: []
 ---
 
-# RFC 0000: Listing edits reach the newest release
+# RFC 0081: Listing edits reach the newest release
 
 ## Summary
 
