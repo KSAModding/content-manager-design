@@ -117,3 +117,23 @@ The process ends.
 **Loading a vehicle** in the editor or the launch menu calls `UncompressedVehicleSave.Load(IViewport)`, which runs the same `PartTree.Deserialize` with the same result.
 
 **Version**: nothing compares the saved `version` with the running game, and there is no migration.
+
+## The Unscience case
+
+The report on Discord (2026-09-20): a save made with Unscience crashes the game when Unscience is not installed.
+
+What Unscience does, from its source:
+
+- It keeps its own state in `unscience.json` in the save folder, next to `universe.xml` (`SaveStorage`). The file carries a schema version, a SHA-256 of `universe.xml`, and one record per feature. The game never reads it.
+- Its Parts Now feature makes part templates from pasted XML while the game runs. It writes them into an ordinary mod folder, `<mods>/<mod-id>/` with `mod.toml` and XML, and enables that folder in `manifest.toml`, so the folder also loads at the next start without Unscience. Its README says the part mods must be installed before the game reads the save, and that `unscience.json` is not a portable asset bundle.
+- While installed, it checks a save before the game loads it (`NativeSavePreflight`) and refuses the load with an error when a part template, a character, a parent body or the system is missing.
+
+A vehicle built from a Parts Now template names that template in `universe.xml`.
+That save needs the generated mod folder, not Unscience.
+When the folder is missing, for example because the save was copied to another computer, `ModLibrary.Get<PartTemplate>` throws and the game ends as described above.
+Removing only Unscience does not cause this, because the folder still loads.
+
+So the code shows no path by which removing only Unscience ends the game.
+Why the reported save failed, the decompiled code cannot answer.
+What Unscience writes into `universe.xml` is decided by the mod's own code, and the save itself was not available.
+Two consequences hold either way: the mod's own check runs only while the mod is installed, and a save made again without the mod loses `unscience.json` without a message.
