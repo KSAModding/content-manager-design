@@ -1,15 +1,15 @@
 ---
-rfc: "0000"
+rfc: "0078"
 title: Releases that disappear from their host
 status: Proposed
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-09-22
-discussion:
+discussion: https://github.com/KSAModding/content-manager-design/pull/78
 supersedes: []
 superseded-by: []
 ---
 
-# RFC 0000: Releases that disappear from their host
+# RFC 0078: Releases that disappear from their host
 
 ## Summary
 
