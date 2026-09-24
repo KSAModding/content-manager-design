@@ -1,15 +1,15 @@
 ---
-rfc: "0000"
+rfc: "0079"
 title: More freedom for authors in the index
 status: Proposed
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-09-24
-discussion:
+discussion: https://github.com/KSAModding/content-manager-design/pull/79
 supersedes: []
 superseded-by: []
 ---
 
-# RFC 0000: More freedom for authors in the index
+# RFC 0079: More freedom for authors in the index
 
 ## Summary
 
