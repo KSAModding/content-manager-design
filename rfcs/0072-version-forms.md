@@ -1,7 +1,7 @@
 ---
 rfc: "0072"
 title: Shorter version forms on a release tag
-status: Proposed
+status: Accepted
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-09-21
 discussion: https://github.com/KSAModding/content-manager-design/pull/72
