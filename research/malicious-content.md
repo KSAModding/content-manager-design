@@ -189,11 +189,11 @@ Our reference mod already gives a useful test case. Its current source tree does
 - Writes configuration files under the game's documents folder.
 - Patches game methods with Harmony throughout.
 
-A scanner aimed at the index today sees none of this. The newest stamped AdvancedFlightComputer release is 0.7.5 from 2026-09-02, with a download size of 129,696 bytes. The guidance code lands after it. This is a forecast of the next release, not a reading of the current release. A naive flag list would still meet all of these signals at once.
+This code shipped with AdvancedFlightComputer 0.8.0 on 2026-09-21. Its archive holds four managed assemblies and the native libraries `clarabel_c.dll`, `scs.dll`, `libclarabel_c.so` and `libscs.so`, and it grew from 129,696 bytes in 0.7.5 to 1,400,512 bytes. A naive flag list meets all of these signals at once.
 
 P/Invoke into a native blob together with `Assembly.LoadFrom` is a stronger malware signal than a socket. Other normal mod behavior also creates strong signals:
 
-- Harmony patching is normal for the nine code mods among the twelve listings. Two of the twelve are data-only packs, and the final listing is the loader itself.
+- Harmony patching is normal for the code mods of the index. On 2026-09-25 the index has 20 listings: 16 declare a loader, the loader itself is one more, and three declare none.
 - The loader also triggers such a heuristic because StarMap's `Program.Main` loads `0Harmony.dll` into the default load context.
 - `ModLibraryPatches.BeforePrepareAll` calls `Process.Start` on the StarMap executable and then calls `Environment.Exit`. A static reader sees a program that relaunches the game. In practice, this path runs only when a newly enabled mod is present and the user clicks restart in `ConfirmRestart`.
 - A mod never needs to ship Harmony because `ModAssemblyLoadContext.Load` resolves it from the default context first. Its presence or absence in an archive therefore proves nothing.
@@ -220,7 +220,7 @@ The same paper estimates a review queue of about one hour per day for one resear
 
 The organization has limited review capacity:
 
-- The charter names five stewards.
+- The charter names six stewards.
 - The index `SECURITY.md` says that "The stewards are volunteers and have no on-call rota" and cannot guarantee a response time.
 - RFC 0033 already creates a residual steward queue for SpaceDock-only listings, first pack claims, failed ownership proofs, and the first pull request from a brand-new account.
 
@@ -290,18 +290,16 @@ Attacker-controlled input together with a list that almost nobody reads is worse
 
 One simple fact is worth more than a long list. The client can tell the player whether the content runs code at all, and the index can answer this before the download:
 
-- A stamped release has a `loader` object exactly when the content needs a code loader.
-- Nine of the twelve current listings have one.
-- The two data-only packs do not have one.
-- The loader itself does not have one because its listing declares `type = "mod-loader"`.
-- `RuntimeMod.TryCreateMod` returns false without a managed entry assembly, while the game's own path is declarative.
+- A stamped release has a `loader` object when its listing declares one. On 2026-09-25, 16 of the 20 listings declare a loader, and the loader itself does not because its listing declares `type = "mod-loader"`.
+- The declaration is not proof. unscience declares no loader and its 1.67.0 archive ships 33 managed assemblies.
+- The archive is proof. `RuntimeMod.TryCreateMod` returns false without a managed entry assembly, while the game's own path is declarative, so a managed assembly in the archive is what makes content run code.
 
-The client can therefore make a checkable distinction between "this content adds data only, it runs no code" and "this mod runs code inside the game". A player can understand and judge that distinction.
+The index or the client can therefore make a checkable distinction, from the archive and not from the declaration, between "this content adds data only, it runs no code" and "this mod runs code inside the game". A player can understand and judge that distinction.
 
 The client can also describe the download without claiming that it is safe:
 
 - A file inventory can separate managed assemblies, native PE files, and data through `PEReader.HasMetadata`. This is a description, not a verdict, and it lets an interested reader investigate.
-- A change from the previously installed release is easier to judge than an absolute profile. The client can say that an update adds a native library, changes the download host, or grows the archive from 129 KB to 4 MB.
+- A change from the previously installed release is easier to judge than an absolute profile. The client can say that an update adds a native library, changes the download host, or grows the archive from 130 KB to 1.4 MB, as AdvancedFlightComputer did from 0.7.5 to 0.8.0.
 
 This kind of change report would have caught the Modrinth case, where version one was clean.
 
@@ -360,9 +358,9 @@ Each available option is either blind or wrong:
 - ClamAV detects 59.94 percent of malware for which signatures already exist. It has no signature for a payload written for us and skips files above 25 MB by default.
 - A single call to `Assembly.Load(byte[])`, `TypeBuilder.DefinePInvokeMethod`, or reflection with a runtime string defeats a static reference list.
 - The best published behavior detector has an 81.5 percent false positive rate and names our exact cases.
-- Our own reference mod will trigger five separate naive flags when its guidance code ships. The loader triggers two more.
+- Our own reference mod triggers five separate naive flags since its guidance code shipped in 0.8.0. The loader triggers two more.
 - A check that cannot block is only another published fact. The disclosure already covers that fact.
-- A check that can block creates an appeals queue for five volunteers whose own `SECURITY.md` promises no rota.
+- A check that can block creates an appeals queue for six volunteers whose own `SECURITY.md` promises no rota.
 
 One exception is worth including in the RFC as a routing rule, not a gate. RFC 0033 already sends the first pull request from a brand-new account to a steward. A free account-age lookup makes that trigger data-driven.
 
