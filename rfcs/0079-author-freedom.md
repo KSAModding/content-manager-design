@@ -1,7 +1,7 @@
 ---
 rfc: "0079"
 title: More freedom for authors in the index
-status: Proposed
+status: Accepted
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-09-24
 discussion: https://github.com/KSAModding/content-manager-design/pull/79
