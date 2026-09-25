@@ -1,7 +1,7 @@
 ---
 rfc: "0078"
 title: Releases that disappear from their host
-status: Proposed
+status: Accepted
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-09-22
 discussion: https://github.com/KSAModding/content-manager-design/pull/78
