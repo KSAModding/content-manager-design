@@ -61,6 +61,7 @@ min = "1.4.0"
 
 The example leaves out `[releases]`, which names the host that the hosting RFC defines.
 There is no `[compatibility]` table, because the watcher takes `game_min` from the build in the archive's `meta.toml`.
+This early in KSA a new build often breaks older vehicle files, so the build that wrote the file is the default floor, and you lower it only when you know an older build loads it.
 The archive holds the folder as the game wrote it, named after `name` in its `meta.toml`:
 
 ```text
@@ -72,7 +73,7 @@ Example Rover/
 **Installing.**
 Your client installs and enables the mods the vehicle needs, and then the vehicle.
 When a required mod cannot be installed, the client names it, says that the game can end, and lets you continue.
-When your instance already has a vehicle with that name that the client did not install, the client stops and does not replace it.
+When your instance already has a vehicle with that name that the client did not install, the client asks you for another name and never replaces your vehicle.
 
 ## Reference-level explanation
 
@@ -95,7 +96,7 @@ The shared core of RFC 0031, and:
 |---|---|
 | `[releases]` | Names the host of the archive, see Hosting. Without it, releases enter by release pull request (RFC 0033). |
 | `[[dependencies]]` | As for a mod, with every kind and `any_of`. A listed `id` must be of type `mod`. |
-| `[compatibility]` | Optional. When `game_min` is absent, the watcher stamps it from the archive. |
+| `[compatibility]` | Optional. When `game_min` is absent, the watcher stamps it from the archive. When a build is known to break the file, the owner or a steward sets `game_max` with an amendment ([RFC 0079](0079-author-freedom.md)), so a client stops offering the release on that build. |
 | `[loader]` | Invalid. |
 | `[install]` | Only `root`, `steps` and `uninstall`. |
 | `[images]` | As for a mod ([RFC 0058](0058-listing-images-and-dates.md)). |
@@ -119,8 +120,9 @@ When every host of a release stops, the watcher marks the release as gone ([RFC 
 ### The dependencies
 
 The authored `[[dependencies]]` are the whole list, because there is no `mod.toml`, and the watcher freezes them with `source = "authored"`.
-The defaults: a mod that provides an id the file names is `required`, a mod that leaves no id is at most `recommends`, and every entry has a `min` and no `max`.
-A bound matters, because a mod update that removes a part template breaks a vehicle as a missing mod does.
+The defaults: a mod that provides an id the file names is `required`, and a mod that leaves no id is at most `recommends`.
+An entry has a `min` when the sharing client knows the version it installed, because an older version of the mod may not have the part yet.
+It has no `max` by default. When an update of the mod removes a part that the file names, the owner adds a `max` with an amendment.
 An id that is not listed is a valid entry, and a client warns about it by RFC 0031's rule for an unlisted dependency.
 
 A client that shares:
@@ -129,7 +131,7 @@ A client that shares:
 2. Maps each id to the installed and enabled mod that defines it. An id from `Content/Core` needs no entry. When two mods define the same id, it names both and the publisher chooses (the game keeps the first, `SerializedCollection.Register`).
 3. Makes one `required` entry per mod, with `min` set to the version that the client itself installed, and no `min` for a mod it did not install. A mod folder whose name is not a valid RFC 0031 id gets no entry, and the client names it to the publisher.
 4. Leaves out the dependencies of those mods, which a resolver finds through their own listings.
-5. For a save, names every file in the folder other than `meta.toml` and `universe.xml`, because the game writes none, so it is probably a mod's state.
+5. For a save, names every file in the folder other than `meta.toml` and `universe.xml`, because the game replaces the folder and writes only those two (`UncompressedSave.Write` through `SaveDirectory.TryReplace`), so any other file is a mod's state.
 6. Checks `name` by the name rule below. A name from an older build can fail, because only a new save goes through `SaveName.TryAccept` and an overwrite keeps the old name (`UncompressedSave.Overwrite`), so the client asks for a new save under a valid name.
 7. Shows the list to the publisher, and makes the archive with one top-level directory named after `name`.
 
@@ -156,7 +158,11 @@ The name rule is that of `SaveName.Sanitize` and `SaveName.IsSanitized`, written
 - No space at the start or the end, and no two spaces together.
 - Not `CON`, `PRN`, `AUX`, `NUL`, `COM1` to `COM9` or `LPT1` to `LPT9`, compared without case.
 
+The rule comes with a vector file of names and verdicts in `schemas/` of the authored repository, which the watcher, the listing checks and every client test against.
+It holds the cases a checker gets wrong most easily: Python's `str.isalnum` accepts more categories than `char.IsLetterOrDigit`, and the limit counts UTF-16 code units, not characters.
+
 The watcher does not map the ids to mods, because that needs the asset files of every mod, which the index does not hold.
+Loading a vehicle or a save resolves no type by name: the game has no `Type.GetType`, and it reads both files with `XmlSerializer` over fixed types, so a shared save is no more trusted than a vehicle. This was not checked for every save data class.
 It parses with its own TOML and XML parsers, so a file that passes can still fail in the game.
 
 ### The release file
@@ -165,7 +171,7 @@ Every field of a mod release file except `loader`, and:
 
 | Field | On `vehicle` and `save` |
 |---|---|
-| `install.folder` | Required. The `name` from `meta.toml`. Immutable, as all install data. |
+| `install.folder` | Required. The `name` from `meta.toml`. Immutable, as all install data. The checks refuse a release whose `install.folder` equals, without case, one of another listing of the same type, because a player who has the first could not install the second. |
 | `install.target`, `install.path` | Absent, because the type default applies. |
 | `game_min`, `game_min_revision` | The authored `game_min`, or else `version` from `meta.toml`. |
 
@@ -185,9 +191,9 @@ A client:
 1. Resolves the dependencies by RFC 0031 and compatibility by RFC 0017. Only incompatible blocks.
 2. Installs the dependencies first and enables them in the instance's `manifest.toml`. The game adds a new mod folder as disabled (`ModLibrary.AddMods`) and loads no disabled mod (`ModLibrary.PrepareAll`), so a dependency that is not enabled ends the game as a missing one does.
 3. When a required dependency cannot be installed or enabled, names it and lets the player continue. For a vehicle it also says that the game's launch menu can end the game while this vehicle is the newest, because the menu loads the newest vehicle before the player chooses (`VehicleLaunchMenu`, sorted by `updated` in `VehicleSaves`).
-4. Stops when the target folder has a folder named `install.folder`, or a `meta.toml` whose `name` equals it, unless the client installed it from the same listing. Both comparisons ignore case. The game shows two folders with the same `name` as one entry and keeps the one it read last (`LookupCollection` with `allowReplacing`).
+4. Checks the target folder for a folder named `install.folder`, or a `meta.toml` whose `name` equals it, that the client did not install from the same listing. Both comparisons ignore case, because the game shows two folders with the same `name` as one entry and keeps the one it read last (`LookupCollection` with `allowReplacing`). When it finds one, it offers to install under another name that the player chooses and that passes the name rule: it writes that name into `meta.toml` and uses it as the folder name, which is all a rename needs (Borea #556). When the player declines, it stops.
 5. Verifies `download.sha256`, unpacks into a temporary folder on the same volume and outside `Vehicles` and `saves` (the game reads every direct subfolder there), checks `meta.toml`, `name` and the game file, and moves the folder into place in one step.
-6. Records the listing, the version, the folder and a hash of each file.
+6. Records the listing, the version, the folder it installed and a hash of each file after any rename.
 
 It changes nothing while the game of that instance runs.
 
@@ -200,24 +206,26 @@ When the files differ from the recorded hashes, it replaces or removes the folde
 - A `[[vehicles]]` entry of a pack that names a listed id must reference a `vehicle`, and a `[[saves]]` entry a `save`. Every other pack rule applies unchanged.
 - The authored repository gains `vehicles/<id>.toml` and `saves/<id>.toml`. The location, collision, ownership, amendment, release notes ([RFC 0064](0064-changelog-text.md)) and gone release ([RFC 0078](0078-gone-releases.md)) rules apply as for a mod, and release files go under `releases/<id>/`.
 - Download counts ([RFC 0052](0052-static-download-counts.md)) are collected for these listings in the `listings` array of `download-counts.json`, and the snapshot build joins each count to the entry with that id in any of the three arrays.
-- The snapshot gains two optional top-level arrays, `vehicles` and `saves`, with the entry shape of `listings`. `listings` keeps only mods and loaders, so a client that does not know these types never sees them and never installs a vehicle as a mod.
-- [spec/tags.md](../spec/tags.md) gives both types their own curated list, which starts empty, because the forum has no prefix for them. Free-form tags are valid from the start.
+- The snapshot gains two optional top-level arrays, `vehicles` and `saves`, with the entry shape of `listings`. `listings` keeps only mods and loaders, so search and the lists stay per type, and a client that does not know these types does not list them.
+- Tags on these types are free-form for now, because the forum has no prefix for them. [spec/tags.md](../spec/tags.md) and `tags.toml` get a list for them only when rule 4 of that page finds the demand.
 
 ### Rollout and versions
 
 A host from the hosting RFC exists, and the listing checks, the watcher and the snapshot builder support `vehicle`, before the index accepts a `vehicle` listing, and later the same for `save`.
+Clients learn to read `install.folder` and the two snapshot arrays before they offer these types.
 Vehicles first, because a vehicle's needs are almost all visible in its file, while a save adds bodies, a roster and mod state beside the file.
 
 `spec_version` and `snapshot_version` stay at `1`.
 A new type needs no bump by RFC 0031, `install.folder` and the optional `[compatibility]` hold only for the new types, and the snapshot arrays are optional keys that an older client ignores.
 
-This RFC amends RFC 0025 (its open question), RFC 0031 (the types, `install.folder`, pack entry types), [RFC 0033](0033-content-index.md) (the folders and archive checks), [RFC 0035](0035-content-install-descriptor.md) (the defaults and rule 9), RFC 0052 (counts), RFC 0058 (images), spec/snapshot.md and spec/tags.md.
+This RFC amends RFC 0025 (its open question), RFC 0031 (the types, `install.folder`, pack entry types), [RFC 0033](0033-content-index.md) (the folders and archive checks), [RFC 0035](0035-content-install-descriptor.md) (the defaults and rule 9), RFC 0052 (counts), RFC 0058 (images) and spec/snapshot.md.
 
 ## Drawbacks
 
 - The dependency list is only as good as the sharing client and the publisher. The index cannot check it.
 - Mapping ids to mods reads the asset files of installed mods, one more game format a client has to follow.
-- `game_min` from the file is the publisher's build, so a player one build behind is blocked by RFC 0017.
+- `game_min` from the file is the publisher's build, so a player one build behind is blocked by RFC 0017 until the author lowers it.
+- A `game_max` is set only after somebody finds that a build breaks the file, so a player on that build can hit the break first.
 - Nothing can be listed before the hosting RFC, and a publisher then still needs an account on that host, which is more than sharing a file on Discord.
 
 ## Alternatives
@@ -225,15 +233,12 @@ This RFC amends RFC 0025 (its open question), RFC 0031 (the types, `install.fold
 - **The index reads the list out of the file.** It would need the asset files of every mod version, and mods without ids and state beside a save would still be missing.
 - **A mod in the game writes the exact list.** Each template knows its mod while the game runs (`SerializedId.OnDataLoad`), but it helps only where it ran, has to follow every game update, and a failure in the save path hits every player. It stays a future possibility.
 - **Warn without resolving, or refuse to install.** A missing part template ends the game, and only incompatible blocks anywhere in this specification.
-- **Vehicles and saves in `listings` of the snapshot.** A client that knows only mods would try to install them into its mods folder.
+- **Vehicles and saves in `listings` of the snapshot.** Every client would have to filter by type for search and its lists, and a client that does not know the types would list them.
 
 ## Unresolved questions
 
 - Which host the archives go to, and how its account proves ownership. This is the hosting RFC, and it decides who can publish.
 - Which forum thread a vehicle or save links as the required `links.forums`. Whether the forum has a section for them is not verified.
-- Whether the build in `meta.toml` is too tight as the default `game_min`, and a month form such as `2026.9` is better.
-- Whether a client may install under another name when the name is taken (compare Borea #556), instead of stopping.
-- Whether the index notes or refuses a second listing of the same type with the same `install.folder`.
 - Whether `name` needs a stricter rule than `SaveName`, for example Unicode NFC for macOS.
 
 ## Future possibilities
