@@ -1,15 +1,15 @@
 ---
-rfc: "0000"
+rfc: "0085"
 title: Vehicles and saves as content
 status: Proposed
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-09-26
-discussion:
+discussion: https://github.com/KSAModding/content-manager-design/pull/85
 supersedes: []
 superseded-by: []
 ---
 
-# RFC 0000: Vehicles and saves as content
+# RFC 0085: Vehicles and saves as content
 
 ## Summary
 
