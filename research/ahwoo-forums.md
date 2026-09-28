@@ -116,7 +116,9 @@ The thread page gives `datePublished`, the thread id and the author with the mem
 A dispute is rare and a steward decides it, so this needs no automation.
 
 **Tag prefill ([spec/tags.md](../spec/tags.md)).**
-The `label` span in the `h1` of the thread page gives the prefix name, which maps through `forum_prefix` in `tags.toml`.
+The `label` span in the `h1` of the thread page gives the prefix name.
+The prefix maps by its id through `forum_prefix_id` in `tags.toml`, because the forum may rename a prefix and a renamed prefix keeps its id.
+The title label carries only the text. The similar threads that the page lists carry the class `is-prefix<id>` of their prefix, so the id of the title prefix comes from a listed thread of the same forum with the same label (checked on the DeltaVMap thread on 2026-09-28).
 `og:title` is not a source, because it is the plain title when a thread has no prefix, and a title can contain ` - `.
 That is one request when a person runs the listing tool.
 9 of the 74 Mod Releases threads, one of them the rules thread, have no prefix and give no tag.
