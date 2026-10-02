@@ -1,7 +1,7 @@
 ---
 rfc: "0080"
 title: Pack claims, members, and outdated packs
-status: Proposed
+status: Accepted
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-09-23
 discussion: https://github.com/KSAModding/content-manager-design/pull/80
