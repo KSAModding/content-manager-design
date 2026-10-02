@@ -1,7 +1,7 @@
 ---
 rfc: "0081"
 title: Listing edits reach the newest release
-status: Proposed
+status: Accepted
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-09-23
 discussion: https://github.com/KSAModding/content-manager-design/pull/81
