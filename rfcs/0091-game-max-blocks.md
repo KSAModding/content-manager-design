@@ -1,15 +1,15 @@
 ---
-rfc: "0000"
+rfc: "0091"
 title: A stated upper game bound blocks
 status: Draft
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-10-04
-discussion:
+discussion: https://github.com/KSAModding/content-manager-design/pull/91
 supersedes: []
 superseded-by: []
 ---
 
-# RFC 0000: A stated upper game bound blocks
+# RFC 0091: A stated upper game bound blocks
 
 ## Summary
 
