@@ -1,15 +1,15 @@
 ---
-rfc: "0000"
+rfc: "0092"
 title: When a listing was listed
 status: Draft
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-10-09
-discussion:
+discussion: https://github.com/KSAModding/content-manager-design/pull/92
 supersedes: []
 superseded-by: []
 ---
 
-# RFC 0000: When a listing was listed
+# RFC 0092: When a listing was listed
 
 ## Summary
 
