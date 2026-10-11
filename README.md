@@ -9,6 +9,7 @@ Design process and specification for a Kitten Space Agency content manager and c
 - `research/` Read this before proposing anything.
 - [DECISIONS.md](DECISIONS.md) for what has been settled so far.
 - [CONTRIBUTING.md](CONTRIBUTING.md) if you want to write something.
+- [SECURITY.md](SECURITY.md) to report a security problem in this repository.
 
 ## Layout
 

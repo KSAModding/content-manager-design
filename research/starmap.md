@@ -122,12 +122,12 @@ A release carries a single `StarMap-<version>.zip`, published `-r win-x64 --self
 
 That looks Windows-only and is not. In the shipped `0.4.6` build, `StarMap.runtimeconfig.json` is framework dependent against `Microsoft.NETCore.App 10.0.0` with no runtime pinned, and `StarMap.deps.json` carries no native and no RID-specific assets at all. Every assembly in the zip is portable managed code, and the only Windows artifact is the apphost. `dotnet StarMap.dll` therefore runs the same build anywhere a .NET 10 runtime exists.
 
-Running it on Linux is reported to work, with two obstacles that are not in StarMap's own code:
+Running it on Linux is reported to work. The inspected package layout and the reported renderer requirement are:
 
-- **The game ships as a single file on `linux-x64`,** so `KSA.dll` does not exist on disk, while `LoaderConfig.TryLoadConfig` requires exactly that file. The reported workaround is to split the executable first with [SingleFileExtractor](https://github.com/Droppers/SingleFileExtractor) (`sfextract KSA -o .`), which produces the same DLL layout the Windows build has.
+- **`KSA.dll` is present in the inspected Linux game package.** Game build `2026.8.22.5348` is a normal self-contained deployment, and its `KSA.dll` has FileVersion `2026.8.21.5348`. `LoaderConfig.TryLoadConfig` can use that file without an extraction step.
 - **`XDG_SESSION_TYPE=x11` is reported to be required**, which points at the game's own renderer under Wayland rather than at the loader.
 
-This has been reported at: <https://forums.ahwoo.com/threads/artemis-oem-loader.857/#post-4328>
+The X11 requirement is reported at: <https://forums.ahwoo.com/threads/artemis-oem-loader.857/#post-4328>
 
 The author has said he is planning a dedicated Linux build.
 
