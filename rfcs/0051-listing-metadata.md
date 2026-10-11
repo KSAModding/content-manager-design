@@ -13,7 +13,7 @@ superseded-by: []
 
 ## Summary
 
-An optional `[extensions]` table on every authored file, holding namespaced key-value data that no resolver, installer, or compatibility check may read.
+An optional `[extensions]` table on `mod` and `mod-loader` authored files, holding namespaced key-value data that no resolver, installer, or compatibility check may read.
 
 **Postponed.**
 Review established that the derived-view model accepted in [#37](https://github.com/KSAModding/content-manager-design/discussions/37) already covers every case this RFC could name, and that nobody could produce the one kind of fact an extensions table would be needed for.
@@ -72,8 +72,8 @@ type = "mod"
 accent = "#ff8800"
 ```
 
-Each direct child of `[extensions]` is a namespace named after the consumer that owns it.
-That consumer reads its own namespace and ignores every other; a client that knows none of them loses nothing.
+Each direct child of `[extensions]` is a namespace, by convention named after the consumer that documents it.
+Namespaces have no owner: a consumer reads only the namespaces it explicitly recognizes and ignores every other, and a client that recognizes none of them loses nothing.
 
 The line an extension must not cross: it may change how a listing is **presented**, never what is **resolved, downloaded, or installed**.
 
@@ -82,11 +82,12 @@ The name is `[extensions]` rather than `[metadata]` because the entire file is m
 ## Reference-level explanation
 
 The design as review left it, corrections included.
-None of it is normative while this RFC is postponed.
+None of it is normative while this RFC is postponed; each rule below states what a reopened RFC would require.
 
 ### Where it lives
 
-In the shared authored core of [RFC 0031](0031-content-metadata-format.md), for `mod` and `mod-loader` only.
+A top-level table in the authored files of `mod` and `mod-loader` under [RFC 0031](0031-content-metadata-format.md).
+It would not be part of RFC 0031's shared authored core, because that core is carried by every authored document and this table is not.
 
 **`modpack` is excluded.**
 A pack document is immutable per version, so an extension on a pack is frozen at the version that carried it rather than live, changing one would require publishing a new pack version, and the full size allowance would repeat for every version in the snapshot.
@@ -101,20 +102,23 @@ That contradicts the live-data reason the table exists for, and excluding packs 
 | Every direct child of `[extensions]` is a table. A scalar or array directly under `[extensions]` makes the file invalid. | Un-namespaced keys are how two consumers end up fighting over `accent`. Forcing the namespace makes a collision impossible rather than unlikely. |
 | Namespace names follow RFC 0031's id rules, compared case-insensitively. | Reusing the id charset means no second naming scheme to specify, and it is already known to be safe on every platform. |
 | A namespace need not be a listed id, and claiming one grants nothing. | The table names consumers, not content, and `borea` is not a mod. |
+| Values are strings, booleans, integers between −(2^53−1) and 2^53−1, arrays, and tables. A float or any date or time value anywhere under `[extensions]` makes the file invalid. | Every allowed value has exactly one JSON form, so the size rule below is unambiguous. Floats (including `inf` and `nan`) and TOML date-times have no single JSON mapping; a consumer that needs one can store it as a string. |
 | At most 4 KiB per listing, measured as defined below. | Every byte lands in the snapshot RFC 0033 ships to every client, so an unbounded table is a cost paid mostly by people who never read it. |
 
 ### How the size is measured
 
 One representation, so the schema check, the snapshot builder and any other implementation compute the same number:
 
-**The UTF-8 byte length of the parsed `extensions` value serialized as compact JSON, with no insignificant whitespace.**
+**The UTF-8 byte length of the parsed `extensions` value serialized with the JSON Canonicalization Scheme ([RFC 8785](https://www.rfc-editor.org/rfc/rfc8785)).**
 
+The mapping is direct: a TOML table becomes a JSON object, an array an array, a string a string, an integer a number, and a boolean `true` or `false`.
+RFC 8785 then fixes key order, string escaping, number formatting, and whitespace, so every implementation produces the same bytes.
 TOML comments, indentation, and key order do not count, and neither does the two-space indentation `spec/snapshot.md` applies when the value reaches the snapshot.
 Whether 4 KiB is the right number, and whether it should be per listing or per namespace, was never settled; per listing is simpler and makes namespaces compete for the allowance, which may be the wrong incentive.
 
 ### What it may not do
 
-1. **No consumer may read a namespace it does not own.** Reading someone else's namespace makes their private key your public contract, and they will change it.
+1. **A consumer reads only the namespaces it explicitly recognizes, and treats their contents as untrusted author input.** Recognizing a namespace grants nothing: any author can write any namespace, and if two consumers recognize the same name they read the same data, with nobody obliged to keep its keys stable.
 2. **Nothing under `[extensions]` may affect resolution, dependencies, compatibility, install, load order, or versioning.** Presentation is what it is for; behaviour is what it is not. A validator cannot tell the two apart, so this is a boundary the promotion path has to keep, not something the index can enforce.
 3. **It is not stamped into release files.** RFC 0031's `listing` block freezes the display facts a release shipped with; this is live data owned by consumers rather than by the release, and a frozen copy would only go stale.
 4. **It is authored text like any other.** RFC 0033's moderation, delisting, and takedown path applies unchanged.
@@ -125,9 +129,10 @@ No new fetch path, and no client-side choice.
 `spec/snapshot.md` puts every authored document in the snapshot verbatim, and that document is sufficient for offline use on its own, so an `extensions` table appears there for every listing that carries one.
 A separate fetch for selected authored fields would have to amend the snapshot contract and give up its one-fetch and offline guarantees, which no saving here justifies.
 
-### The schema is part of this RFC, not left open
+### The schema would be part of this RFC, not left open
 
-The rules above are normative, so the companion pull request against `KSAModding/content-index` implements exactly them and has no latitude to permit a free subtree at `extensions`: a table, each direct child a table, each name a valid id, case-insensitive duplicates rejected, and the size rule as measured above.
+No companion pull request exists, and none should be opened while this RFC is postponed.
+If this RFC is reopened, a companion pull request against `KSAModding/content-index` must implement exactly the rules above, with no latitude to permit a free subtree at `extensions`: a table, each direct child a table, each name a valid id, case-insensitive duplicates rejected, only the allowed value types, and the size rule as measured above.
 Without that change the field is rejected at publish time regardless of what this RFC says, the way RFC 0048 depends on [content-index#34](https://github.com/KSAModding/content-index/pull/34).
 
 ### Promotion
@@ -141,7 +146,7 @@ This was the mechanism the table existed to serve, and it is the part worth keep
 - **The presentation-versus-behaviour line is unenforceable.** Nothing stops a client resolving on `extensions.itself.requires`, and nobody outside that client would know.
 - **It reopens `additionalProperties: false`.** The index's schema is closed today and catches typos and junk for free; one permissive subtree is a small hole, but it is the first one.
 - **It makes the format partly opaque.** A reader of a listing can no longer tell what all of it means, which is a real loss for a format whose selling point is that one file says everything.
-- **Namespaces are unowned.** Anyone can write `[extensions.borea]` into their own listing, so Borea has to treat its own namespace as untrusted input from the author.
+- **Namespaces are unowned.** Anyone can write `[extensions.borea]` into their own listing, so Borea has to treat the `borea` namespace as untrusted input from the author, and a squatted name has no remedy.
 
 ## Alternatives
 
