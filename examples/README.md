@@ -26,7 +26,7 @@ The rest predates the index and was stamped by hand following the watcher proced
 | `AutoRemoveFinishedBurns`, `DeltaVMap` | Minimal code mods: abstract only, no dependencies, for list views that need volume. |
 | `MeasureTools` | A long Markdown `description`, next to the short ones. |
 | `StageInfo` | `status = "deprecated"` without a successor, a closed compatibility range (`game_max`), and a pinned loader bound. |
-| `StarMap` | The `mod-loader` type: single release host, no `[loader]` section, and the RFC 0035 `[install]` and `[provides]` tables, with the resolved `install.target` stamped into the release file. |
+| `StarMap` | The `mod-loader` type: single release host, no `[loader]` section, the RFC 0035 `[install]` and `[provides]` tables, with the resolved `install.target` stamped into the release file, and the RFC 0049 `[provides.instance]` table. |
 
 Two things are missing on purpose:
 
