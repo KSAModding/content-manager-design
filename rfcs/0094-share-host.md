@@ -1,15 +1,15 @@
 ---
-rfc: "0000"
+rfc: "0094"
 title: A share host for vehicles and saves
 status: Draft
 authors: ["@SafeShows"]
 created: 2026-10-11
-discussion:
+discussion: https://github.com/KSAModding/content-manager-design/pull/94
 supersedes: []
 superseded-by: []
 ---
 
-# RFC 0000: A share host for vehicles and saves
+# RFC 0094: A share host for vehicles and saves
 
 ## Summary
 
