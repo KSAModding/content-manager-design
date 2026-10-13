@@ -1,15 +1,15 @@
 ---
-rfc: "0000"
+rfc: "0095"
 title: The rename redirect follows a fork
 status: Draft
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-10-11
-discussion:
+discussion: https://github.com/KSAModding/content-manager-design/pull/95
 supersedes: []
 superseded-by: []
 ---
 
-# RFC 0000: The rename redirect follows a fork
+# RFC 0095: The rename redirect follows a fork
 
 ## Summary
 
