@@ -1,15 +1,15 @@
 ---
-rfc: "0000"
+rfc: "0096"
 title: Which releases of a repository are mod releases
 status: Draft
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-10-11
-discussion:
+discussion: https://github.com/KSAModding/content-manager-design/pull/96
 supersedes: []
 superseded-by: []
 ---
 
-# RFC 0000: Which releases of a repository are mod releases
+# RFC 0096: Which releases of a repository are mod releases
 
 ## Summary
 
