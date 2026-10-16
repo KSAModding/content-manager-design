@@ -1,7 +1,7 @@
 ---
 rfc: "0091"
 title: A stated upper game bound blocks
-status: Draft
+status: Accepted
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-10-04
 discussion: https://github.com/KSAModding/content-manager-design/pull/91
