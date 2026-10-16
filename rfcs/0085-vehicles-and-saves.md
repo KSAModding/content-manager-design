@@ -15,7 +15,8 @@ superseded-by: []
 
 The index gets two content types, `vehicle` and `save`, with one document shape: a mod listing without `[loader]`.
 A release is an archive on a release host, and the watcher stamps it as it stamps a mod release.
-GitHub releases, which most mods use, are not meant for vehicle and save files, so the host comes in an RFC of its own, and the index accepts these listings only once such a host exists.
+The index stays on GitHub, but no player needs a repository to share a vehicle or a save.
+The archives go to GitHub storage that a host operator owns, or to an external host such as SpaceDock; the host comes in an RFC of its own, and the index accepts these listings only once such a host exists.
 The mods a vehicle or a save needs are ordinary `[[dependencies]]`, which the client that shares fills from the mods of its instance and the publisher checks.
 The client that installs resolves, installs and enables those mods, and then installs the folder in one step.
 Vehicles come first, saves second.
@@ -95,6 +96,7 @@ The shared core of RFC 0031, and:
 | Part | On `vehicle` and `save` |
 |---|---|
 | `[releases]` | Names the host of the archive, see Hosting. Without it, releases enter by release pull request (RFC 0033). |
+| `links.forums` | Optional. Vehicles and saves are many more than mods and carry no code, and the forum may have no place for them. Without it, the account on the host is what ties the listing to a person in a dispute or a takedown. |
 | `[[dependencies]]` | As for a mod, with every kind and `any_of`. A listed `id` must be of type `mod`. |
 | `[compatibility]` | Optional. When `game_min` is absent, the watcher stamps it from the archive. When a build is known to break the file, the owner or a steward sets `game_max` with an amendment ([RFC 0079](0079-author-freedom.md)), so a client stops offering the release on that build. |
 | `[loader]` | Invalid. |
@@ -106,9 +108,15 @@ It is never compared with `name` in `meta.toml`, because the game takes the iden
 
 ### Hosting
 
-The index stays on GitHub, but the archives of vehicles and saves do not, because a player should not need a repository to share a rover.
-The host is a new release host kind, defined by its own RFC, in the same way as SpaceDock is one for mods.
-It has to give the watcher what a mod host gives it:
+The index stays on GitHub, and a player should not need a repository or a GitHub account to share a rover.
+So the archives go to one of two kinds of release host, each defined by its own RFC:
+
+- A share host: a service that takes the upload from the player and keeps the archives as release assets in GitHub storage that its operator owns, outside the KSAModding organization. This is the preferred kind, because the data stays on GitHub, where the watcher, the checks and anyone can read it.
+- An external host such as SpaceDock, in the same way as SpaceDock is one for mods, when it takes these files.
+
+A player who has a GitHub account can still name a repository of their own under `[releases] github`, as a mod author does, and the release pull request path of RFC 0033 stays open; neither is required.
+
+Either kind has to give the watcher what a mod host gives it:
 
 - A list of the releases of one vehicle or save, each with a version, a date and one archive.
 - A download URL that stays the same for a release, so that `download.sha256` keeps its meaning.
@@ -218,7 +226,7 @@ Vehicles first, because a vehicle's needs are almost all visible in its file, wh
 `spec_version` and `snapshot_version` stay at `1`.
 A new type needs no bump by RFC 0031, `install.folder` and the optional `[compatibility]` hold only for the new types, and the snapshot arrays are optional keys that an older client ignores.
 
-This RFC amends RFC 0025 (its open question), RFC 0031 (the types, `install.folder`, pack entry types), [RFC 0033](0033-content-index.md) (the folders and archive checks), [RFC 0035](0035-content-install-descriptor.md) (the defaults and rule 9), RFC 0052 (counts), RFC 0058 (images) and spec/snapshot.md.
+This RFC amends RFC 0025 (its open question), RFC 0031 (the types, `install.folder`, pack entry types, `links.forums` optional on the new types), RFC 0079 (its required `links.forums` holds for mods and loaders only), [RFC 0033](0033-content-index.md) (the folders and archive checks), [RFC 0035](0035-content-install-descriptor.md) (the defaults and rule 9), RFC 0052 (counts), RFC 0058 (images) and spec/snapshot.md.
 
 ## Drawbacks
 
@@ -237,8 +245,7 @@ This RFC amends RFC 0025 (its open question), RFC 0031 (the types, `install.fold
 
 ## Unresolved questions
 
-- Which host the archives go to, and how its account proves ownership. This is the hosting RFC, and it decides who can publish.
-- Which forum thread a vehicle or save links as the required `links.forums`. Whether the forum has a section for them is not verified.
+- Which host comes first, and how its account proves ownership. This is the hosting RFC ([#94](https://github.com/KSAModding/content-manager-design/pull/94) proposes a share host), and it decides who can publish.
 - Whether `name` needs a stricter rule than `SaveName`, for example Unicode NFC for macOS.
 
 ## Future possibilities
