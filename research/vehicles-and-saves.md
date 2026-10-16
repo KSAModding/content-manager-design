@@ -1,6 +1,6 @@
 # Vehicles and saves, and the mods they need
 
-Verified against game build **2026.9.10.5438**, and for the Unscience case against `meow-sci/unscience` at commit `93c9a50`.
+Verified against game build **2026.9.10.5438** and updated for **2026.9.22.5482**, and for the Unscience case against `meow-sci/unscience` at commit `93c9a50`.
 
 ## Answer
 
@@ -10,9 +10,9 @@ Both name content by bare ids: part templates, module templates, substances, cel
 Those ids carry no mod prefix, so the file alone cannot say which mod provides them.
 
 The game checks nothing before it loads.
-A part template or an EVA character that is not installed throws an exception that nothing catches, and the game ends.
+A part template, an EVA character, or (with ground clutter on) a ground clutter ecotype that is not installed throws an exception that nothing catches, and the game ends.
 A missing roster character does the same later in play.
-Other missing content is logged and dropped.
+Other missing content is dropped, usually with a log line.
 Mod state that a mod keeps outside the game's XML is invisible to the game, and to anybody reading the XML.
 
 ## Where they live
@@ -41,7 +41,7 @@ Mods under `<GameDir>/Content/` do not move, so every instance shares them (see 
 The folder name is used only to find the files.
 
 Normally both are equal, because `UncompressedSave.Make` writes to a folder named after the name.
-When they differ, `Overwrite` deletes the folder the save came from and writes a new one named after `name`, so the save moves.
+When they differ, `UncompressedSave.Overwrite` and `UncompressedVehicleSave.Overwrite` write a new folder named after `name` and do not delete the folder the save came from, so two folders then carry the same name.
 
 The lists are `LookupCollection`s created with `allowReplacing: true`.
 Two folders whose `meta.toml` carry the same name show up as one entry, and the one read last wins, without a message.
@@ -75,7 +75,7 @@ The game version is the one version the game records, and it only displays it (s
 ## `universe.xml` and `vehicle.xml`
 
 Both are written by `XmlSerializer` through `XmlHelper.SerializeWithoutNaN`.
-`universe.xml` is a `UniverseData`: `GameTime`, `CameraData`, one `System` with an `Id` and a `Vehicle` element per vehicle (`VehicleData`), and the `KittenRoster`.
+`universe.xml` is a `UniverseData`: `GameTime`, `CameraData`, one `System` with an `Id`, a `Vehicle` element per vehicle (`VehicleData`), the ground clutter of each body (`ClutterEcotypeSaveData`), and the `KittenRoster`.
 `vehicle.xml` is a `VehicleSaveData`: the `Id` (the name), the part tree under `RootPartRef`, sequences, fuel links, `LaunchGameTime`, and a `Character` for a kitten.
 
 `VehicleData` extends `VehicleSaveData`, so a vehicle inside a save has the same part tree as a vehicle file, plus orbit, flight computer and resource state.
@@ -89,6 +89,7 @@ Five real saves were 430 to 670 KB, five real vehicles 78 to 180 KB.
 | Module state | Module elements such as `TankData` or `EngineController`, with an `InstanceOf` | `ModuleList.ApplySaveData`, from `PartTree.Deserialize` | Warning "matched no module", the state is discarded. |
 | Substance | `SubstancePhaseId` on a `Mole` inside `TankData` | `SubstanceLibrary.TryGetSubstancePhase`, from `Tank.ApplySaveData` | Error logged, that substance is left out of the tank. |
 | Parent body (saves) | `ParentBody` `Id` of each vehicle | `CelestialSystem.Get`, from `CelestialSystem.DeserializeSave` | Error logged, the vehicle is not created. |
+| Ground clutter (saves) | `Celestial` and `Ecotype` of each `GroundClutter` in `System` | `GroundClutterRenderer.DeserializeSave` | Skipped without a message when the body is missing. When the body has no ecotype with that id, a dictionary lookup throws `KeyNotFoundException`. Only with ground clutter on in the graphics settings, which is the default. |
 | Celestial system (saves) | `System/Id`, and `systems` in `meta.toml` | Nothing. | `Universe.DeserializeSave` loads the vehicles into whatever system runs. |
 | EVA character | `Character` on a vehicle | `ModLibrary.Get<CharacterReference>`, from the `KittenEva` constructor | `ModLibrary.Get` throws `NullReferenceException`. |
 | Roster character (saves) | `Character` on each `Kitten` of the roster | `ModLibrary.Get<CharacterReference>`, from the `KittenRenderable` constructor (`IVASeat`) and the `KittenEva` constructor (`EVADoor`) | Throws later in play, when the seat renders or the kitten goes on EVA, not at load. |
@@ -96,25 +97,27 @@ Five real saves were 430 to 670 KB, five real vehicles 78 to 180 KB.
 Two properties of these ids matter for any dependency check:
 
 - **No id names its mod.** `SerializedId.Mod` is set when a template loads, but it is `XmlIgnore`, so the providing mod is not written. Part ids are a single global namespace: `SerializedCollection.Register` keeps the first template with an id and silently drops any later one.
-- **Mod code cannot add its own records to these files.** `XmlHelper` registers module save types only from the game assembly (`Assembly.GetExecutingAssembly`). A mod that keeps its own state must patch that or write a file of its own. Unknown elements and attributes are skipped by `XmlSerializer` by default, and the game attaches no `UnknownElement` handler, so such data is dropped on load. `UncompressedSave.Write` deletes the whole folder and writes it new, so the next save also deletes any extra file in the folder.
+- **Mod code cannot add its own records to these files.** `XmlHelper` registers module save types only from the game assembly (`Assembly.GetExecutingAssembly`). A mod that keeps its own state must patch that or write a file of its own. Unknown elements and attributes are skipped by `XmlSerializer` by default, and the game attaches no `UnknownElement` handler, so such data is dropped on load. `UncompressedSave.Write` and `UncompressedVehicleSave.Write` delete the whole folder and create it again (`SaveDirectory.TryReplace`) before they write, so the next save also deletes any extra file in the folder. When the folder cannot be deleted, the game does not write the save and shows an alert.
 
 ## What the game does with content that is not installed
 
-**At start**, `GameSaves.Refresh` and `VehicleSaves.Refresh` read every folder, and the constructors parse every XML file.
-Parsing does not resolve templates, so a missing mod is not noticed here.
-`UncompressedSave.FromDirectory` catches exceptions from `universe.xml` and skips that save.
-It reads `meta.toml` outside the `catch`, and `GameSaves.Refresh` catches nothing, so a save `meta.toml` that Tomlet cannot parse stops the game from starting.
-`UncompressedVehicleSave.FromDirectory` catches nothing, and neither does `VehicleSaves.Refresh`.
-So a `vehicle.xml` that the serializer cannot read stops the game from starting, and so does a missing `vehicle.xml` (`VehicleSaveData.LoadFrom` throws), for example after a half-finished install.
+**At start**, `GameSaves.Refresh` and `VehicleSaves.Refresh` read the `meta.toml` of every folder, but not the XML files.
+`universe.xml` is read only when the save is loaded, and `vehicle.xml` only when the vehicle is loaded (the `UncompressedVehicleSave.VehicleSaveData` property reads it on first use).
+So neither a missing mod nor a broken XML file is noticed here.
+`UncompressedSave.FromDirectory` skips a folder without `universe.xml` with a warning (`UniverseData.ExistsIn`), and `UncompressedVehicleSave.FromDirectory` skips a folder without `vehicle.xml` (`VehicleSaveData.ExistsIn`), for example after a half-finished install.
+Both read `meta.toml` outside any `catch` (`SaveMetaData.FromDirectory`), and neither `GameSaves.Refresh` nor `VehicleSaves.Refresh` catches anything, so a `meta.toml` that Tomlet cannot parse stops the game from starting.
 A folder without `meta.toml` is skipped with a warning in both cases.
 
-**Loading a save**, `UncompressedSave.Load` calls `Universe.DeserializeSave`.
-That first destroys the running vehicles (`CelestialSystem.DestroyAllVehicles`), then builds each vehicle through `Vehicle.CreateVehicleFromSaveGameData` and `PartTree.Deserialize`.
+**Loading a save**, `UncompressedSave.Load` reads `universe.xml` and then calls `Universe.DeserializeSave`.
+A `universe.xml` that the serializer cannot read is logged as an error, and the save is not loaded.
+`Universe.DeserializeSave` first destroys the running vehicles (`CelestialSystem.DestroyAllVehicles`), then builds each vehicle through `Vehicle.CreateVehicleFromSaveGameData` and `PartTree.Deserialize`.
 A missing part template throws in the middle of that.
-There is no `catch` on the path, not in `Program.Main` either, and the only unhandled exception handler in the decompiled assemblies (in the static constructor of `Network`) only shuts networking down.
+The `catch` in `UncompressedSave.Load` covers only the read of `universe.xml`, so there is no `catch` on this path, not in `Program.Main` either, and the only unhandled exception handler in the decompiled assemblies (in the static constructor of `Network`) only shuts networking down.
 The process ends.
 
-**Loading a vehicle** in the editor or the launch menu calls `UncompressedVehicleSave.Load(IViewport)`, which runs the same `PartTree.Deserialize` with the same result.
+**Loading a vehicle** in the editor or the launch menu calls `UncompressedVehicleSave.Load(IViewport)`.
+A `vehicle.xml` that the serializer cannot read is logged and shown as an alert, and no vehicle is loaded.
+Otherwise it runs the same `PartTree.Deserialize` with the same result.
 
 **Version**: nothing compares the saved `version` with the running game, and there is no migration.
 
@@ -168,7 +171,7 @@ The ids can still check a declaration: a client that has the game and the mods i
 
 **What a client does when a mod is missing.**
 The game refuses nothing.
-A missing part template or EVA character ends the process, a missing roster character ends it later in play; a missing body, substance or module drops that piece with only a log line; a missing mod without ids loses its state silently.
+A missing part template or EVA character ends the process, a missing roster character ends it later in play; a vehicle on a missing body, a missing substance or a missing module drops that piece with only a log line; a missing mod without ids loses its state silently.
 So "install and warn" can mean a crash the player cannot explain, which is the reported case.
 
 **A version per mod, or only an id.**
@@ -193,5 +196,5 @@ It allows spaces and non-ASCII letters, which an RFC 0031 id does not.
 - **Resolve, do not only warn.** Required dependencies install with the vehicle or save, as RFC 0025 already describes. When one is unavailable, the client warns and says that loading may end the game. Blocking stays reserved for incompatible, as everywhere else.
 - **Versions as bounds.** Dependencies take the same optional `min` and `max` as mod dependencies, with a `min` as the recommended default. The build in `meta.toml` is a fact the watcher can read for `game_min`.
 - **Vehicles first, one shape.** One document shape for both types, differing in `type` and the folder. Vehicles first, because their needs are almost all visible in the file. Saves second, with the note that mod state beside the file is never visible.
-- **Install in one step.** A client unpacks a vehicle or save into a temporary folder, checks that both files are there and parse, and then moves the folder into place in one step. A half-written folder stops the game from starting.
+- **Install in one step.** A client unpacks a vehicle or save into a temporary folder, checks that both files are there and parse, and then moves the folder into place in one step. The game skips a folder without its XML file, fails to load one whose XML file is cut off, and does not start when Tomlet cannot parse a `meta.toml`.
 - **Id and folder apart.** The id follows RFC 0031 in the global namespace. The install folder is the `name` from `meta.toml`, which the watcher reads from the archive and checks: it passes `SaveName.IsSanitized`, and the folder in the archive matches it. A client does not overwrite a folder of that name that it did not install.
