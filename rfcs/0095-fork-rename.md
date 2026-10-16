@@ -1,7 +1,7 @@
 ---
 rfc: "0095"
 title: The rename redirect follows a fork
-status: Draft
+status: Accepted
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-10-11
 discussion: https://github.com/KSAModding/content-manager-design/pull/95
