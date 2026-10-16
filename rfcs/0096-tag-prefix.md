@@ -1,7 +1,7 @@
 ---
 rfc: "0096"
 title: Which releases of a repository are mod releases
-status: Draft
+status: Accepted
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-10-11
 discussion: https://github.com/KSAModding/content-manager-design/pull/96
