@@ -1,7 +1,7 @@
 ---
 rfc: "0092"
 title: When a listing was listed
-status: Draft
+status: Accepted
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-10-09
 discussion: https://github.com/KSAModding/content-manager-design/pull/92
