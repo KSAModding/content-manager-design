@@ -4,6 +4,7 @@ What a client fetches, and the whole contract between the index and the clients 
 
 [RFC 0033](../rfcs/0033-content-index.md) defines the snapshot as one JSON document merging every listed authored document, the release files of listed entries, the index status data and the game release list, carrying its own format version.
 Vehicles and saves are the exception: each of the two types has a file of its own next to that document, see [Vehicles and saves](#vehicles-and-saves).
+That shape is proposed in [RFC 0094](https://github.com/KSAModding/content-manager-design/pull/94) in place of the two arrays that RFC 0085 names, and it is not decided yet, so this page assumes it until RFC 0094 states it as an amendment of RFC 0085 and RFC 0033.
 
 Everything downstream happens locally: search, dependency resolution and compatibility evaluation need these files and nothing else, offline included ([RFC 0017](../rfcs/0017-game-version-ordering-and-compatibility.md), [RFC 0031](../rfcs/0031-content-metadata-format.md)).
 
@@ -35,8 +36,9 @@ The index publishes three files:
 
 The `v1` segment carries the snapshot format version, so a future break can be served next to what it replaces.
 
-Poll each file with `If-None-Match` against its own ETag, and an unchanged file answers 304.
-A client that does not show vehicles or saves never fetches their file.
+Poll each file with `If-None-Match` against its own ETag.
+A file answers 304 while the host keeps its ETag, which on this host lasts until the next deployment, see [Determinism](#determinism).
+A client need not fetch the vehicle file or the save file when it does not show that type, resolves no pack member of it and checks no id against it.
 
 ## Determinism
 
@@ -56,6 +58,7 @@ Object key order is not part of the contract, and a client must not depend on it
 The builder builds and compares each file on its own, so a publish that changes one file leaves the bytes of the others as they were.
 Whether the others keep their ETag depends on the host.
 GitHub Pages issues a new ETag for every file of the site on each deployment, so after a change to one file a client downloads the others once more, which costs a download and never correctness.
+A deployment replaces the whole site, so each one carries every file that was already published, changed or not.
 
 ## The document
 
@@ -101,7 +104,7 @@ An empty index is `listings` and `packs` as empty arrays, never as absent fields
 A client lists it and has nothing to install.
 
 Mods, mod loaders, packs, vehicles and saves share one id namespace, compared without case (RFC 0031).
-So an id is taken when an entry with it is anywhere in the snapshot, a tombstone included.
+So an id is taken when an entry with it is in the main document, the vehicle file or the save file, a tombstone included.
 
 Three voices sit side by side in one entry and never mix, which is why each has its own key: the author writes `authored`, tooling writes `releases`, `downloads` and the dates, and the index writes `index_status`.
 The author's own `status` field, `active` or `deprecated`, is inside `authored` where it belongs, and it is not the same thing as `index_status`.
@@ -154,8 +157,8 @@ Each type has a file of its own, at the address in [Fetching it](#fetching-it), 
 The game release list and the curated tags are only in the main document, and a client reads them from there.
 
 The builder publishes no file for a type while the authored repository holds no listing of that type, delisted ones included, so nothing published changes before the first listing of that type.
-A client treats a file that the host answers with 404 as an empty array.
-On any other failure it keeps the copy it has, because a network error read as "no vehicles" would show every installed vehicle as unlisted.
+A client that holds no copy of a type file treats a 404 for it as an empty array.
+A client that holds a copy keeps it on a 404 and on any other failure, because a published type file never goes away, and a fault read as "no vehicles" would show every installed vehicle as unlisted.
 
 A pack in the main document can pin a vehicle or a save, so a client reads the file of that type before it resolves such a member.
 
@@ -329,9 +332,12 @@ The builder in the generated index repository produces the first one, and until 
 The main document published on 2026-10-20 holds 26 listings with 122 releases and one pack.
 It is 1,116,389 bytes uncompressed, and the host serves it compressed, at about 108 KB.
 
-Vehicles and saves can be many more than mods and change much more often, which is the size question of [RFC 0094](https://github.com/KSAModding/content-manager-design/pull/94).
-It is settled with the two files of their own, in place of the two arrays `vehicles` and `saves` in the main document that RFC 0085 names.
-An upload changes only the file of its type, and a client that never shows a type never fetches its file.
+Vehicles and saves can be many more than mods and change much more often, which is the size question of RFC 0094.
+This page assumes the answer proposed there, the two files of their own in place of the two arrays `vehicles` and `saves` in the main document.
+The split keeps the bytes of vehicles and saves, and the work of parsing them, out of the main document and out of a client that does not need them.
+It does not by itself keep an upload from making a client download the main document again, because on one GitHub Pages site every deployment gives every file a new ETag.
+Independent validators need a host that gives them, for example a separate site per file or a host whose ETag is a hash of the content.
+RFC 0094 chooses that host, and the choice changes only the table under [Fetching it](#fetching-it).
 
 What grows fastest is not the number of listings but the `listing` block frozen into every release, which repeats a listing's descriptive text once per release of it.
 If that becomes the problem, the fix needs no new field: RFC 0031 already has a client fall back to the authored document wherever the frozen block or one of its fields is absent, so a future `snapshot_version` can drop a frozen field that equals the live one.
