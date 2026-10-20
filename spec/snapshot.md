@@ -111,7 +111,7 @@ Each release also carries the `listing` block RFC 0031 freezes into it, so a rel
 Entries of the types `vehicle` and `save` ([RFC 0085](../rfcs/0085-vehicles-and-saves.md)) have the same shape.
 Two differences come from their documents, not from the builder:
 
-- `links.forums` and `compatibility` can be absent, in `authored` and in the `listing` block of each release, and a client does not treat that as an error. The compatibility of a release still comes from its `game_min_revision`, which the watcher stamps from the archive when the listing authors no `game_min`.
+- `links.forums` can be absent in `authored` and in the `listing` block of each release, and `[compatibility]` can be absent in `authored`. A client does not treat either as an error. A release still always carries `game_min` and `game_min_revision`, which come from the authored `game_min` or else from `version` in the archive's `meta.toml`.
 - Each release carries `install.folder`, the `name` from the archive's `meta.toml`, next to `install.root` and `install.derived`. It has no `install.target` or `install.path`, because the type default of RFC 0085 applies.
 
 ### A pack
