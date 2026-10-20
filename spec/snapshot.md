@@ -1,10 +1,11 @@
 # The snapshot artifact
 
-The one document a client fetches, and the whole contract between the index and the clients that read it.
+What a client fetches, and the whole contract between the index and the clients that read it.
 
 [RFC 0033](../rfcs/0033-content-index.md) defines the snapshot as one JSON document merging every listed authored document, the release files of listed entries, the index status data and the game release list, carrying its own format version.
+Vehicles and saves are the exception: each of the two types has a file of its own next to that document, see [Vehicles and saves](#vehicles-and-saves).
 
-Everything downstream happens locally: search, dependency resolution and compatibility evaluation need this document and nothing else, offline included ([RFC 0017](../rfcs/0017-game-version-ordering-and-compatibility.md), [RFC 0031](../rfcs/0031-content-metadata-format.md)).
+Everything downstream happens locally: search, dependency resolution and compatibility evaluation need these files and nothing else, offline included ([RFC 0017](../rfcs/0017-game-version-ordering-and-compatibility.md), [RFC 0031](../rfcs/0031-content-metadata-format.md)).
 
 ## What the builder does, and what it does not
 
@@ -24,38 +25,47 @@ It is also what keeps this page from becoming a second copy of RFC 0031's field 
 
 ## Fetching it
 
-The index publishes at:
+The index publishes three files:
 
-```text
-https://ksamodding.github.io/content-index-releases/v1/index.json
-```
+| File | Address | Holds |
+|---|---|---|
+| The main document | `https://ksamodding.github.io/content-index-releases/v1/index.json` | Mods, mod loaders, packs, the game release list and the curated tags. |
+| The vehicle file | `https://ksamodding.github.io/content-index-releases/v1/snapshot-vehicles.json` | Vehicles. |
+| The save file | `https://ksamodding.github.io/content-index-releases/v1/snapshot-saves.json` | Saves. |
 
 The `v1` segment carries the snapshot format version, so a future break can be served next to what it replaces.
 
-Poll it with `If-None-Match`, and an unchanged index answers 304.
+Poll each file with `If-None-Match` against its own ETag, and an unchanged file answers 304.
+A client that does not show vehicles or saves never fetches their file.
 
 ## Determinism
 
-The builder writes the same bytes for the same input, and an index whose bytes are already published is not published again.
+The builder writes the same bytes for the same input, and a file whose bytes are already published is not published again.
 Both are needed, because publishing is a deployment and a deployment issues a new ETag either way.
 Together they keep a cached copy valid: an unchanged index costs a client one 304, and the scheduled backstop rebuild costs it nothing.
 
 Four rules carry that:
 
 - **No wall-clock field.** A `generated_at` would change the bytes on every scheduled rebuild and invalidate every cached copy for no change in content. `sources` carries the provenance instead, and how stale a copy is comes from HTTP.
-- **The provenance follows the content, not the clock.** `sources` names the state the published content was built from, so it moves only when the content moves. A commit that changes nothing the snapshot carries has to leave the bytes alone, or `sources` reintroduces the problem above, only slower.
+- **The provenance follows the content, not the clock.** `sources` names the state the published content was built from, so it moves only when the content moves. Each file carries its own `sources`, which moves only with that file's content. A commit that changes nothing the snapshot carries has to leave the bytes alone, or `sources` reintroduces the problem above, only slower.
 - **Every array is ordered**, by the rules below, rather than left in the order a filesystem happened to hand its entries over.
 - **UTF-8, no BOM, LF line endings, two-space indent.**
 
 Object key order is not part of the contract, and a client must not depend on it.
 
+The builder builds and compares each file on its own, so a publish that changes one file leaves the bytes of the others as they were.
+Whether the others keep their ETag depends on the host.
+GitHub Pages issues a new ETag for every file of the site on each deployment, so after a change to one file a client downloads the others once more, which costs a download and never correctness.
+
 ## The document
+
+The main document:
 
 | Field | Required | Meaning |
 |---|---|---|
 | `snapshot_version` | yes | The version of this format. `1` for everything defined here. |
 | `sources` | no | Which state of the index this was built from. Absent on a snapshot built from anything other than the two index repositories. |
-| `listings` | yes | Mods and mod loaders. Ascending by lowercased id. |
+| `listings` | yes | Mods and mod loaders, never vehicles or saves. Ascending by lowercased id. |
 | `packs` | yes | Mod packs. Ascending by lowercased id. |
 | `game_versions` | yes | The game release list, verbatim. |
 | `tags` | no | The curated tag vocabulary, `tags.toml` of the authored repository verbatim ([tags.md](tags.md)). Absent until that file exists. |
@@ -116,6 +126,38 @@ Two differences come from their documents, not from the builder:
 
 Each entry of `versions` is `{ "authored": <the pack document, verbatim> }`, plus an `index_status` when that version is retracted.
 A pack has no generated half, so there is no `releases` here: the document is the release.
+
+### Vehicles and saves
+
+Entries of the types `vehicle` and `save` are not in the main document.
+Each type has a file of its own, at the address in [Fetching it](#fetching-it), with the envelope of the main document and one array named after the type:
+
+| Field | Required | Meaning |
+|---|---|---|
+| `snapshot_version` | yes | As in the main document. |
+| `sources` | no | As in the main document, for the state this file was built from. |
+| `vehicles` or `saves` | yes | The entries of that type, in the shape of [A listing](#a-listing). Ascending by lowercased id. |
+
+```json
+{
+  "snapshot_version": 1,
+  "sources": {
+    "authored": { "repository": "KSAModding/content-index", "commit": "9fe1c0f" },
+    "generated": { "repository": "KSAModding/content-index-releases", "commit": "3a77b21" }
+  },
+  "vehicles": [
+    { "id": "ExampleRover", "authored": { "...": "..." }, "releases": [{ "...": "..." }] }
+  ]
+}
+```
+
+The game release list and the curated tags are only in the main document, and a client reads them from there.
+
+The builder publishes no file for a type while the authored repository holds no listing of that type, delisted ones included, so nothing published changes before the first listing of that type.
+A client treats a file that the host answers with 404 as an empty array.
+On any other failure it keeps the copy it has, because a network error read as "no vehicles" would show every installed vehicle as unlisted.
+
+A pack in the main document can pin a vehicle or a save, so a client reads the file of that type before it resolves such a member.
 
 ### Index status
 
@@ -222,6 +264,10 @@ A client that reads a `snapshot_version` higher than it implements refuses the w
 It does not parse what it recognises: the envelope is what tells it where everything is, so a version it does not know means it cannot be sure what it is holding.
 The user gets "this client is too old for the index", which is actionable, rather than an index that quietly lost half its entries.
 
+The vehicle file and the save file carry their own `snapshot_version`, and a break moves them to the next path segment together with the main document.
+A client that reads a higher `snapshot_version` in one of them refuses that file only and keeps its copy of it, and the main document is not affected.
+The two files leave `snapshot_version` at `1`, because an older client never fetches them, and `listings` loses nothing it carried before.
+
 **`spec_version` is one document inside the envelope**, and RFC 0031 already says what happens: an entry a client cannot interpret renders as an entry in an unknown state and is never silently dropped.
 Its id still counts as taken.
 
@@ -280,7 +326,12 @@ The builder in the generated index repository produces the first one, and until 
 
 ## Size
 
-Merging the seven listings and eight releases under `examples/` gives about 30 KB uncompressed, and the host serves the document compressed.
+The main document published on 2026-10-20 holds 26 listings with 122 releases and one pack.
+It is 1,116,389 bytes uncompressed, and the host serves it compressed, at about 108 KB.
+
+Vehicles and saves can be many more than mods and change much more often, which is the size question of [RFC 0094](https://github.com/KSAModding/content-manager-design/pull/94).
+It is settled with the two files of their own, in place of the two arrays `vehicles` and `saves` in the main document that RFC 0085 names.
+An upload changes only the file of its type, and a client that never shows a type never fetches its file.
 
 What grows fastest is not the number of listings but the `listing` block frozen into every release, which repeats a listing's descriptive text once per release of it.
 If that becomes the problem, the fix needs no new field: RFC 0031 already has a client fall back to the authored document wherever the frozen block or one of its fields is absent, so a future `snapshot_version` can drop a frozen field that equals the live one.
