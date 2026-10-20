@@ -13,7 +13,7 @@ It never rewrites the content of a document.
 
 - It **joins** each listing to its release files, so a client never sees the two-repository split.
 - It **filters** out everything a delisted listing owns, and leaves a tombstone.
-- It **attaches** the index's own state to the listing or the pack version that state names, and the download counts to the listing they count.
+- It **attaches** the index's own state to the listing or the pack version that state names, and the download counts to the entry they count.
 - It **derives** `published_at` and `updated_at` for each listing and pack from the version timestamps it carries.
 
 Every authored document and every release file appears verbatim, exactly as the repositories hold it.
@@ -90,10 +90,19 @@ An empty index is `listings` and `packs` as empty arrays, never as absent fields
 `releases` is an empty array for a listing whose release host has no release yet, which RFC 0033 admits as a listing that passes its checks vacuously.
 A client lists it and has nothing to install.
 
+Mods, mod loaders, packs, vehicles and saves share one id namespace, compared without case (RFC 0031).
+So an id is taken when an entry with it is anywhere in the snapshot, a tombstone included.
+
 Three voices sit side by side in one entry and never mix, which is why each has its own key: the author writes `authored`, tooling writes `releases`, `downloads` and the dates, and the index writes `index_status`.
 The author's own `status` field, `active` or `deprecated`, is inside `authored` where it belongs, and it is not the same thing as `index_status`.
 
 Each release also carries the `listing` block RFC 0031 freezes into it, so a release can be shown as it was described when it shipped, while `authored` stays live.
+
+Entries of the types `vehicle` and `save` ([RFC 0085](../rfcs/0085-vehicles-and-saves.md)) have the same shape.
+Two differences come from their documents, not from the builder:
+
+- `links.forums` and `compatibility` can be absent, in `authored` and in the `listing` block of each release, and a client does not treat that as an error. The compatibility of a release still comes from its `game_min_revision`, which the watcher stamps from the archive when the listing authors no `game_min`.
+- Each release carries `install.folder`, the `name` from the archive's `meta.toml`, next to `install.root` and `install.derived`. It has no `install.target` or `install.path`, because the type default of RFC 0085 applies.
 
 ### A pack
 
@@ -128,7 +137,7 @@ The entry keeps its `id` and its `index_status` and carries nothing else, so a c
 { "id": "SomeMod", "index_status": { "state": "delisted", "since": "2026-08-10T00:00:00Z" } }
 ```
 
-A tombstone stays in the array its listing was in, which is what says whether the removed content was a listing or a pack.
+A tombstone stays in the array its entry was in, which is what says whether the removed content was a mod or mod loader, a pack, a vehicle or a save.
 Nothing is deleted from anyone's machine, and nothing is deleted from the repositories.
 
 **`disputed` ships whole.**
@@ -139,7 +148,8 @@ The entry is complete and carries the state next to it, so a client shows a warn
 ### Download counts
 
 `downloads` is the listing's entry from `download-counts.json` without the repeated `id`, in the shape [RFC 0052](../rfcs/0052-static-download-counts.md) defines.
-A tombstone and a pack carry none, and an entry whose id matches no listing fails the build.
+The `listings` array of `download-counts.json` holds the counts of mods, mod loaders, vehicles and saves, and the builder joins each count to the entry with that id, wherever the snapshot carries it.
+A tombstone and a pack carry none, and a count whose id matches no such entry fails the build.
 
 An absent count means unknown, and a client must not show it as zero.
 A client may show the counts and sort by them, keeps listings without counts available, and never uses the counts for resolution, installation, ownership or moderation.
@@ -148,6 +158,7 @@ A client may show the counts and sort by them, keeps listings without counts ava
 
 `published_at` and `updated_at` are derived from timestamps the entry already carries ([RFC 0058](../rfcs/0058-listing-images-and-dates.md)).
 They sit next to `id`, never inside `authored`, a release file or a pack version.
+The column "Listing" holds for vehicles and saves too.
 
 | Field | Listing | Pack |
 |---|---|---|
