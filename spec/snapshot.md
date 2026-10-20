@@ -4,7 +4,8 @@ What a client fetches, and the whole contract between the index and the clients 
 
 [RFC 0033](../rfcs/0033-content-index.md) defines the snapshot as one JSON document merging every listed authored document, the release files of listed entries, the index status data and the game release list, carrying its own format version.
 Vehicles and saves are the exception: each of the two types has a file of its own next to that document, see [Vehicles and saves](#vehicles-and-saves).
-That shape is proposed in [RFC 0094](https://github.com/KSAModding/content-manager-design/pull/94) in place of the two arrays that RFC 0085 names, and it is not decided yet, so this page assumes it until RFC 0094 states it as an amendment of RFC 0085 and RFC 0033.
+RFC 0085 names two arrays in this document for them, and [RFC 0094](https://github.com/KSAModding/content-manager-design/pull/94) leaves open whether vehicles and saves get a separate snapshot file or a publish rate per host.
+This page assumes two files of their own, as proposed on the RFC 0094 pull request, until RFC 0094 states it as an amendment of RFC 0085 and RFC 0033.
 
 Everything downstream happens locally: search, dependency resolution and compatibility evaluation need these files and nothing else, offline included ([RFC 0017](../rfcs/0017-game-version-ordering-and-compatibility.md), [RFC 0031](../rfcs/0031-content-metadata-format.md)).
 
@@ -333,11 +334,11 @@ The main document published on 2026-10-20 holds 26 listings with 122 releases an
 It is 1,116,389 bytes uncompressed, and the host serves it compressed, at about 108 KB.
 
 Vehicles and saves can be many more than mods and change much more often, which is the size question of RFC 0094.
-This page assumes the answer proposed there, the two files of their own in place of the two arrays `vehicles` and `saves` in the main document.
+This page assumes that proposal, the two files of their own in place of the two arrays `vehicles` and `saves` in the main document.
 The split keeps the bytes of vehicles and saves, and the work of parsing them, out of the main document and out of a client that does not need them.
 It does not by itself keep an upload from making a client download the main document again, because on one GitHub Pages site every deployment gives every file a new ETag.
 Independent validators need a host that gives them, for example a separate site per file or a host whose ETag is a hash of the content.
-RFC 0094 chooses that host, and the choice changes only the table under [Fetching it](#fetching-it).
+The choice of host is open in RFC 0094, and it changes only the table under [Fetching it](#fetching-it).
 
 What grows fastest is not the number of listings but the `listing` block frozen into every release, which repeats a listing's descriptive text once per release of it.
 If that becomes the problem, the fix needs no new field: RFC 0031 already has a client fall back to the authored document wherever the frozen block or one of its fields is absent, so a future `snapshot_version` can drop a frozen field that equals the live one.
