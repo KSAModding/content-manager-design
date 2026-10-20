@@ -2,6 +2,16 @@
 
 Verified against game build **2026.9.10.5438** and updated for **2026.9.22.5482**, and for the Unscience case against `meow-sci/unscience` at commit `93c9a50`.
 
+## Changed in 2026.10.19.5638
+
+From this build on, a missing part template no longer ends the game.
+`PartInstance.FindMissingParts` collects the part templates that are not installed, and the game shows an alert that names them.
+`UncompressedVehicleSave.Load` then refuses the vehicle file and returns nothing, so the launch menu shows no preview instead of ending the game (`VehicleLaunchMenu`).
+`CelestialSystem.DeserializeSave` leaves such a vehicle out of a loaded save, and also a vehicle whose build throws for another reason, for example a missing EVA character, with an alert.
+`Universe.DeserializeSave` then ends the missions of the kittens assigned to a left-out vehicle.
+The vehicle never enters the universe, so a later save no longer holds it, and a save loaded without its mods loses those vehicles for good.
+The rest of this page describes 2026.9.22.5482 and was not checked again for the other kinds of missing content.
+
 ## Answer
 
 A save and a vehicle are each a folder with a `meta.toml` and one XML file, under the user data root.
