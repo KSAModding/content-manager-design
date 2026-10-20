@@ -23,14 +23,16 @@ Vehicles come first, saves second.
 
 This answers design [#71](https://github.com/KSAModding/content-manager-design/issues/71) on the facts in [research/vehicles-and-saves.md](../research/vehicles-and-saves.md), which were verified on game build 2026.9.10.5438.
 Every game fact here was checked again on 2026.9.22.5482, and where the builds differ, this RFC follows 2026.9.22.5482.
+What the game does with a missing part template was checked again on 2026.10.19.5638, which changed it.
 
 ## Motivation
 
 [RFC 0025](0025-scope.md) puts vehicles and saves in scope and leaves open whether their files record the mods they need.
 They do not.
 A save or a vehicle names part templates, characters, substances and bodies by bare ids, and no id says which mod provides it (`SerializedId.Mod` is `XmlIgnore`).
-A part template or an EVA character that is not installed makes `ModLibrary.Get` throw in `PartTree.Deserialize` or in the `KittenEva` constructor, nothing catches it, and the game ends.
-So a shared vehicle that says nothing about its mods is a crash that the player cannot explain.
+The game looks for part templates that are not installed (`PartInstance.FindMissingParts`) and shows an alert that names them.
+It refuses to load such a vehicle file (`UncompressedVehicleSave.Load`), and when it loads a save, it leaves such a vehicle out of the universe and ends the missions of its kittens (`CelestialSystem.DeserializeSave`, `Universe.DeserializeSave`), so a later save no longer holds the vehicle.
+So a shared vehicle that says nothing about its mods cannot be used, and a shared save loses vehicles for good, without the player knowing which mod to install.
 
 RFC 0031 already defines the `[[vehicles]]` and `[[saves]]` entries of a pack, and RFC 0035 gives both types the anchor `user-data`.
 Only the types themselves are missing.
@@ -73,7 +75,7 @@ Example Rover/
 
 **Installing.**
 Your client installs and enables the mods the vehicle needs, and then the vehicle.
-When a required mod cannot be installed, the client names it, says that the game can end, and lets you continue.
+When a required mod cannot be installed, the client names it, says what the game will do without it, and lets you continue.
 When your instance already has a vehicle with that name that the client did not install, the client asks you for another name and never replaces your vehicle.
 
 ## Reference-level explanation
@@ -197,8 +199,8 @@ A StarMap instance path overrides `Constants.DocumentsFolderPath`, so `user-data
 A client:
 
 1. Resolves the dependencies by RFC 0031 and compatibility by RFC 0017. Only incompatible blocks.
-2. Installs the dependencies first and enables them in the instance's `manifest.toml`. The game adds a new mod folder as disabled (`ModLibrary.AddMods`) and loads no disabled mod (`ModLibrary.PrepareAll`), so a dependency that is not enabled ends the game as a missing one does.
-3. When a required dependency cannot be installed or enabled, names it and lets the player continue. For a vehicle it also says that the game's launch menu can end the game while this vehicle is the newest, because the menu loads the newest vehicle before the player chooses (`VehicleLaunchMenu`, sorted by `updated` in `VehicleSaves`).
+2. Installs the dependencies first and enables them in the instance's `manifest.toml`. The game adds a new mod folder as disabled (`ModLibrary.AddMods`) and loads no disabled mod (`ModLibrary.PrepareAll`), so a dependency that is not enabled counts as a missing one.
+3. When a required dependency cannot be installed or enabled, names it and lets the player continue. It says that the game will refuse the vehicle, or, for a save, that the game will leave out every vehicle that needs the mod and that saving again loses those vehicles.
 4. Checks the target folder for a folder named `install.folder`, or a `meta.toml` whose `name` equals it, that the client did not install from the same listing. Both comparisons ignore case, because the game shows two folders with the same `name` as one entry and keeps the one it read last (`LookupCollection` with `allowReplacing`). When it finds one, it offers to install under another name that the player chooses and that passes the name rule: it writes that name into `meta.toml` and uses it as the folder name, which is all a rename needs (Borea #556). When the player declines, it stops.
 5. Verifies `download.sha256`, unpacks into a temporary folder on the same volume and outside `Vehicles` and `saves` (the game reads every direct subfolder there), checks `meta.toml`, `name` and the game file, and moves the folder into place in one step.
 6. Records the listing, the version, the folder it installed and a hash of each file after any rename.
@@ -240,7 +242,7 @@ This RFC amends RFC 0025 (its open question), RFC 0031 (the types, `install.fold
 
 - **The index reads the list out of the file.** It would need the asset files of every mod version, and mods without ids and state beside a save would still be missing.
 - **A mod in the game writes the exact list.** Each template knows its mod while the game runs (`SerializedId.OnDataLoad`), but it helps only where it ran, has to follow every game update, and a failure in the save path hits every player. It stays a future possibility.
-- **Warn without resolving, or refuse to install.** A missing part template ends the game, and only incompatible blocks anywhere in this specification.
+- **Warn without resolving, or refuse to install.** A missing part template makes the game refuse a vehicle or drop it from a save, and only incompatible blocks anywhere in this specification.
 - **Vehicles and saves in `listings` of the snapshot.** Every client would have to filter by type for search and its lists, and a client that does not know the types would list them.
 
 ## Unresolved questions
