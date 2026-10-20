@@ -1,7 +1,7 @@
 ---
 rfc: "0085"
 title: Vehicles and saves as content
-status: Proposed
+status: Accepted
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-09-26
 discussion: https://github.com/KSAModding/content-manager-design/pull/85
