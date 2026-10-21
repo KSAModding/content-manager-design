@@ -13,7 +13,7 @@ superseded-by: []
 
 ## Summary
 
-[RFC 0085](https://github.com/KSAModding/content-manager-design/pull/85) adds the content types `vehicle` and `save`, and the index accepts them only once a release host exists that a player can publish to without a repository of their own.
+[RFC 0085](0085-vehicles-and-saves.md) adds the content types `vehicle` and `save`, and the index accepts them only once a release host exists that a player can publish to without a repository of their own.
 This RFC defines that host as a new release host kind, the **share host**, and names ksamods.gg as the first instance.
 
 A share host splits into two planes.
@@ -324,14 +324,26 @@ The host's own counter is never read, so a host cannot inflate a count.
 ### Snapshot size
 
 Every upload changes the snapshot, which has no delta path yet, and vehicles and saves may be published far more often than mods.
-Before the first share host is registered, the index decides between a separate snapshot file for vehicles and saves and a publish rate per host.
+A publish rate would only slow the changes down, not shrink what every client downloads.
+
+So vehicles and saves get snapshot files of their own, published next to the main snapshot:
+
+```text
+https://ksamodding.github.io/content-index-releases/v1/index.json
+https://ksamodding.github.io/content-index-releases/v1/snapshot-vehicles.json
+https://ksamodding.github.io/content-index-releases/v1/snapshot-saves.json
+```
+
+Each is built and published like the main snapshot, by the same builder and the same determinism rules of `spec/snapshot.md`, with the same envelope and its own ETag, and carries one array, `vehicles` or `saves`, with the entry shape of `listings`.
+The main snapshot holds only mods, loaders and packs, as today, so an upload on a share host changes only the file of its type.
+A client fetches the vehicle or save file only when it shows that type, and polls it with `If-None-Match` like the main one.
 
 ### What changes elsewhere
 
 - RFC 0031: `[releases]` accepts a key registered in `hosts.toml`, with a listing id as its value, for the types that host accepts; `download.mirrors` also takes verified mirrors from a share host's release list.
 - RFC 0033: the authored repository gains `hosts.toml`, and the ownership check gains the share host proofs.
 - RFC 0052: the host kind `share`.
-- RFC 0085: archives may live in an operator-owned GitHub repository or on an external host, `links.forums` is optional for these types, and the index accepts `vehicle` listings once a host is registered for that type.
+- RFC 0085: the `vehicles` and `saves` arrays move from the main snapshot into `snapshot-vehicles.json` and `snapshot-saves.json`, and spec/snapshot.md describes the two files. Archives may live in an operator-owned GitHub repository or on an external host, `links.forums` is optional for these types, and the index accepts `vehicle` listings once a host is registered for that type.
 - content-index: the schema of `hosts.toml`, the attestation vector file in `schemas/`, and the `max_bytes` check.
 
 ## Drawbacks
@@ -357,13 +369,13 @@ Before the first share host is registered, the index decides between a separate 
 
 - Whether one `storage` repository per host is enough, or whether a host shards by type or by year when the number of releases grows. The data file paths would carry the shard.
 - The values of `max_bytes` per type.
-- The snapshot decision above, which blocks the first registration.
 - Whether GitHub's terms allow release assets as the storage of a sharing service at the scale vehicles may reach, which a host operator should confirm before registration.
 - Whether asset URLs redirect after a transfer of `storage`.
 - What a steward checks before adding a host to `hosts.toml`, beyond the policy link and the succession agreement.
 
 ## Future possibilities
 
+- Splitting the main snapshot into one file for the listings and one for the releases, once it grows too big. It is about 1.1 MB today and still fine.
 - The host maps the ids a file names to mods from the index's archives, and proposes the dependency list on the website for a player who uploads without a client.
 - Signed attestations, when the index adopts a key story for release signatures, so a proof survives a compromise of `storage`.
 - Mod packs that carry their own files, which RFC 0031 postpones, could use the same host kind.
