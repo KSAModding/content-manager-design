@@ -1,7 +1,7 @@
 ---
 rfc: "0094"
 title: A share host for vehicles and saves
-status: Proposed
+status: Accepted
 authors: ["@SafeShows"]
 created: 2026-10-11
 discussion: https://github.com/KSAModding/content-manager-design/pull/94
