@@ -59,6 +59,7 @@ Object key order is not part of the contract, and a client must not depend on it
 | `packs` | yes | Mod packs. Ascending by lowercased id. |
 | `game_versions` | yes | The game release list, verbatim. |
 | `tags` | no | The curated tag vocabulary, `tags.toml` of the authored repository verbatim ([tags.md](tags.md)). Absent until that file exists. |
+| `hosts` | no | The registered share hosts, `hosts.toml` of the authored repository verbatim ([share-host.md](share-host.md)). Absent until that file exists. |
 
 ```json
 {
@@ -198,6 +199,11 @@ It does not need it to evaluate compatibility: every release file carries `game_
 
 `tags` is `tags.toml` from the authored repository, embedded verbatim as JSON, so a client builds its filter chips without a second request.
 Which tags exist and what they mean is in [tags.md](tags.md).
+
+### The share hosts
+
+`hosts` is `hosts.toml` from the authored repository, embedded verbatim as JSON, so a client learns the registered share hosts and their `api` without reading the repository ([RFC 0104](../rfcs/0104-share-host-conformance.md)).
+What a share host is and what it must do is in [RFC 0094](../rfcs/0094-share-host.md) and [share-host.md](share-host.md).
 
 ## Versions, and what a client does with one it does not know
 
