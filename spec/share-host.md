@@ -10,7 +10,7 @@ This page is the checklist an operator builds against and a steward checks again
 
 A host conforms when it meets every numbered rule on this page.
 Rules are numbered once and never renumbered: a removed rule keeps its number, marked removed, so "rule 12 of spec/share-host.md" keeps its meaning.
-How the page changes is in [RFC 0000](../rfcs/0000-share-host-conformance.md).
+How the page changes is in [RFC 0104](../rfcs/0104-share-host-conformance.md).
 
 ## Registration
 

@@ -1,15 +1,15 @@
 ---
-rfc: "0000"
+rfc: "0104"
 title: A conformance specification for share hosts
 status: Draft
 authors: ["@SafeShows"]
 created: 2026-10-21
-discussion:
+discussion: https://github.com/KSAModding/content-manager-design/pull/104
 supersedes: []
 superseded-by: []
 ---
 
-# RFC 0000: A conformance specification for share hosts
+# RFC 0104: A conformance specification for share hosts
 
 ## Summary
 
