@@ -1,7 +1,7 @@
 ---
 rfc: "0104"
 title: A conformance specification for share hosts
-status: Draft
+status: Accepted
 authors: ["@SafeShows"]
 created: 2026-10-21
 discussion: https://github.com/KSAModding/content-manager-design/pull/104
