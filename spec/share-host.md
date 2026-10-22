@@ -101,7 +101,7 @@ Rules 5 and 7 do not apply, and the others apply with "the archive at its `url`"
 27. A download answers `200` with a `Content-Length`, and a `Range` request with `206`.
 28. A `url` redirects only to a URL under a prefix in `downloads`.
 29. A removed archive answers `410 Gone`.
-30. The ownership check accepts an attestation only with a valid signature, and copies the attestation and its signature into its check run output, so a merged proof outlives the host.
+30. The ownership check accepts an attestation only with a valid signature, and posts the attestation, its signature and the key as comments on the pull request that no later run edits, so a merged proof outlives the host.
 31. A takedown makes the `url` answer `410`, and signs the changed release list again.
 32. An erasure replaces the owner record without `github_id` and signs it again.
 33. At succession, the operator gives the successor every data file, signature and archive, in a form the stewards can read without the host's software.
