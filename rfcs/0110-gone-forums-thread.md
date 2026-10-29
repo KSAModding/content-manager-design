@@ -1,15 +1,15 @@
 ---
-rfc: "0000"
+rfc: "0110"
 title: A forums thread that is gone
 status: Draft
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-10-29
-discussion: https://github.com/KSAModding/content-manager-design/issues/101
+discussion: https://github.com/KSAModding/content-manager-design/pull/110
 supersedes: []
 superseded-by: []
 ---
 
-# RFC 0000: A forums thread that is gone
+# RFC 0110: A forums thread that is gone
 
 Amends [RFC 0033](0033-content-index.md) and answers [#101](https://github.com/KSAModding/content-manager-design/issues/101).
 `spec_version` and `snapshot_version` stay at `1`.
