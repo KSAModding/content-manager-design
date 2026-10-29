@@ -1,7 +1,7 @@
 ---
 rfc: "0110"
 title: A forums thread that is gone
-status: Draft
+status: Proposed
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-10-29
 discussion: https://github.com/KSAModding/content-manager-design/pull/110
