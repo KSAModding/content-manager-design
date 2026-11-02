@@ -98,6 +98,7 @@ An empty index is `listings` and `packs` as empty arrays, never as absent fields
 | `releases` | no | The stamped release files of this listing, verbatim, descending by SemVer precedence. Absent only on a tombstone. |
 | `index_status` | no | The index's own state for this listing. |
 | `downloads` | no | The download counts of this listing ([RFC 0052](../rfcs/0052-static-download-counts.md)). Absent means unknown, never zero. |
+| `forums` | no | The forums mark of this listing, an object with one field, `unavailable_since`, the time at which the thread was found gone on three daily checks in a row ([RFC 0110](../rfcs/0110-gone-forums-thread.md)). Absent means no mark. The authored listing never holds it. |
 | `published_at` | no | When the listing first appeared, from its release files. See [Dates](#dates). |
 | `updated_at` | no | When the listing last had a release that is not yanked. See [Dates](#dates). |
 
@@ -125,6 +126,7 @@ Two differences come from their documents, not from the builder:
 | `id` | yes | The pack id, in its authored casing. |
 | `versions` | no | The pack version documents, descending by SemVer precedence. Absent only on a tombstone. |
 | `index_status` | no | The index's own state for the whole pack. |
+| `forums` | no | The forums mark of this pack, as on a listing, for the thread that the newest pack version links. See [Forums mark](#forums-mark). |
 | `published_at` | no | When the pack first appeared, from its versions. See [Dates](#dates). |
 | `updated_at` | no | When the pack last had a version that is not retracted. See [Dates](#dates). |
 
@@ -260,6 +262,12 @@ Which tags exist and what they mean is in [tags.md](tags.md).
 
 `hosts` is `hosts.toml` from the authored repository, embedded verbatim as JSON, so a client learns the registered share hosts and their `api` without reading the repository ([RFC 0104](../rfcs/0104-share-host-conformance.md)).
 What a share host is and what it must do is in [RFC 0094](../rfcs/0094-share-host.md) and [share-host.md](share-host.md).
+
+### Forums mark
+
+`forums.unavailable_since` is the entry of the listing or the pack in `forums-status.json` of the generated index repository, as the time of the third check that found the forums thread gone ([RFC 0110](../rfcs/0110-gone-forums-thread.md)).
+A listing or a pack without an entry carries no `forums` field.
+A client that does not know the field ignores it.
 
 ## Versions, and what a client does with one it does not know
 
