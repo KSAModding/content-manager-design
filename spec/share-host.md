@@ -84,7 +84,6 @@ A breaking change is served at a new version segment next to the old one.
     A client ignores every other failure, and a failure never fails or delays the install.
     The host removes repeated reports of one player on one day, so the client reports every install.
     The host keeps no raw address for counting, and `policy` says how it counts.
-    The index still reads no host counter, as [Download counts](../rfcs/0094-share-host.md#download-counts) says.
 
 ## What the operator owns
 
@@ -124,6 +123,11 @@ Rules 5 and 7 do not apply, and the others apply with "the archive at its `url`"
 33. At succession, the operator gives the successor every data file, signature and archive, in a form the stewards can read without the host's software.
 34. At succession, the operator transfers the domains of `data` and `downloads`, or keeps them redirecting to the successor's copies for at least one year. The Internet Archive mirrors cover what is lost anyway.
 35. The signing key is not handed over: the successor registers its own, and the old one moves to `retired_keys`.
+37. **A release list `releases/<type>/<id>.json` may carry an optional `downloads` object after `releases`**, which is absent until the host has counted a report, by [RFC 0120](../rfcs/0120-share-host-counts.md).
+    `total` is the count of the listing, each key of `versions` is a version of the list with its count, every count is a non-negative integer, and `updated` is the time of the count in ISO 8601 UTC.
+    The host computes the counts only from the reports of rule 36, and a count only goes up.
+    The object is part of the bytes that rule 22 signs, so the host signs the list again when a count changes.
+    The index reads the object once a day, only when its signature is valid, and keeps the highest value it saw for each count.
 
 ## What a steward checks
 
