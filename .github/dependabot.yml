@@ -1,14 +1,17 @@
-# Keeps the actions the docs and rfc checks run on current. Same shape as the
-# file in KSAModding/Borea, so one convention covers every repository in the org.
+# Keeps the actions the docs and rfc checks run on current.
+# The markdownlint-cli2 and lychee versions the docs checks use come with their actions, so this entry covers them too.
+# It runs every day, so a fixed release reaches a pull request within a day.
+# Security updates do not wait for this schedule, because Dependabot opens them when an advisory is published.
 version: 2
 updates:
   - package-ecosystem: "github-actions"
     # Dependabot reads .github/workflows/ from here.
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "cron"
+      # Every day at 05:00 UTC, weekends included, because "daily" runs only Monday to Friday.
+      cronjob: "0 5 * * *"
     groups:
-      # Minor and patch bumps as one pull request instead of one each. A major
-      # bump stays on its own, because that is the one that can break a check.
-      minor-and-patch:
-        update-types: ["minor", "patch"]
+      # All action bumps arrive as one pull request, because the checks of that one pull request show at once whether a check breaks.
+      actions:
+        patterns: ["*"]
