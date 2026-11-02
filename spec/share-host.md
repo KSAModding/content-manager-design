@@ -74,6 +74,17 @@ A breaking change is served at a new version segment next to the old one.
     | `rate_limited` | `new_listings_per_day`, or a limit of the host. The body also carries `retry_after` in seconds. |
     | `upload_expired` | The upload is past `expires`. |
 
+36. **A host may count installs at `POST listings/<type>/<id>/downloads`**, which needs no sign-in and has no body.
+    `<type>` is `vehicle` or `save`, and `<id>` is the listing id.
+    The host answers `204`, or `404` when the listing has no release that is still up.
+    A client sends the request once after each real install or update of a release whose `url` is under the `downloads` of that host, and never for a preview or a picture.
+    A `GET` of a file never counts, so a client may fetch an archive as often as it needs.
+    A host that does not offer the request answers `404`, and the client then sends nothing more to that host in that session.
+    A client ignores every other failure, and a failure never fails or delays the install.
+    The host removes repeated reports of one player on one day, so the client reports every install.
+    The host keeps no raw address for counting, and `policy` says how it counts.
+    The index still reads no host counter, as [Download counts](../rfcs/0094-share-host.md#download-counts) says.
+
 ## What the operator owns
 
 17. Abuse reports, privacy and erasure follow [What the operator owns](../rfcs/0094-share-host.md#what-the-operator-owns), within the response time `policy` states.
