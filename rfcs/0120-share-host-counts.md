@@ -1,7 +1,7 @@
 ---
 rfc: "0120"
 title: Download counts of a share host
-status: Proposed
+status: Accepted
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-11-02
 discussion: "https://github.com/KSAModding/content-manager-design/pull/120"
