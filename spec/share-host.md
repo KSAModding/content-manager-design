@@ -48,12 +48,17 @@ A breaking change is served at a new version segment next to the old one.
     |---|---|---|
     | `POST oauth/device_authorization` | Form, `client_id` | RFC 8628 device authorization response |
     | `POST oauth/token` | Form, RFC 8628 device grant | RFC 8628 token response, a bearer token for the host account |
+    | `POST oauth/token` | Form, RFC 6749 refresh grant: `grant_type` `refresh_token`, `refresh_token`, `client_id` | RFC 6749 token response, a new bearer token |
     | `POST uploads` | Multipart: `archive`, `dependencies` (RFC 0085's list as TOML), and `listing` (an id) for a new version of an existing listing | `201`, JSON: `upload`, `checks`, `version`, `listing`, `expires` |
-    | `POST uploads/<upload>/publish` | JSON: `version`, `status`, and the listing fields for a new id | `201`, JSON: `id`, `type`, `version`, `pull_request` |
+    | `POST uploads/<upload>/publish` | JSON: `version`, `status`, and for a new id the listing fields `id`, `name`, `authors`, `abstract`, `license`, `description` and `tags` | `201`, JSON: `id`, `type`, `version`, `pull_request` |
 
     `client_id` is any string naming the client, such as `borea`, and the host treats every client as a public client without a secret and shows the name when the player confirms the sign-in.
+    A host that puts a `refresh_token` in the device grant answer takes the newest one in the refresh grant and answers with a new `refresh_token` that replaces the old one, so a client keeps the newest one.
+    A host whose device grant answer has no `refresh_token` ends the sign-in when the bearer token expires, and the client signs in again.
     `checks` is an array of `{ "name", "passed", "message" }`, one per check of rule 8, and `listing` in the answer is the listing text to show.
     `expires` is when an upload that was not published is discarded, at least 24 hours after the upload.
+    The listing fields have the types and meanings of [The shared authored core](../rfcs/0031-content-metadata-format.md#the-shared-authored-core), so `authors` and `tags` are arrays of strings.
+    `id`, `name`, `authors`, `abstract` and `license` are required, `description` and `tags` are sent only when set, and `type` and the dependency list come from the upload.
 
 16. **Errors are JSON** `{ "error", "message" }` with a 4xx or 5xx status, and a client shows `message` for a code it does not know:
 
