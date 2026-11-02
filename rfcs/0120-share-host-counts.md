@@ -1,15 +1,15 @@
 ---
-rfc: "0000"
+rfc: "0120"
 title: Download counts of a share host
 status: Proposed
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-11-02
-discussion:
+discussion: "https://github.com/KSAModding/content-manager-design/pull/120"
 supersedes: []
 superseded-by: []
 ---
 
-# RFC 0000: Download counts of a share host
+# RFC 0120: Download counts of a share host
 
 ## Summary
 
