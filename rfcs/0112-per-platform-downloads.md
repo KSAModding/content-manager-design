@@ -1,7 +1,7 @@
 ---
 rfc: "0112"
 title: Per-platform downloads
-status: Proposed
+status: Accepted
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-11-02
 discussion: "https://github.com/KSAModding/content-manager-design/pull/112"
