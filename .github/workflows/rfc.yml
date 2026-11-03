@@ -18,7 +18,8 @@ jobs:
   rfc-metadata:
     name: rfc-metadata
     if: github.event_name != 'pull_request_review'
-    runs-on: ubuntu-latest
+    # A fixed image, so a change of the latest label does not change the job.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       - run: python3 tools/check_rfc_metadata.py
@@ -28,7 +29,8 @@ jobs:
   rfc-approvals:
     name: rfc-approvals
     if: github.event_name != 'push'
-    runs-on: ubuntu-latest
+    # A fixed image, so a change of the latest label does not change the job.
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       pull-requests: read
