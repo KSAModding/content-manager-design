@@ -11,7 +11,8 @@ permissions:
 jobs:
   markdown-lint:
     name: markdown-lint
-    runs-on: ubuntu-latest
+    # A fixed image, so a change of the latest label does not change the job.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       - uses: DavidAnson/markdownlint-cli2-action@v25
@@ -20,7 +21,8 @@ jobs:
 
   link-check:
     name: link-check
-    runs-on: ubuntu-latest
+    # A fixed image, so a change of the latest label does not change the job.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
 
