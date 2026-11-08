@@ -1,12 +1,12 @@
 # What StarMap is
 
-Verified against StarMap `0.4.6` (commit `57846b2`, released 2026-08-02) and game build **2026.8.3.5117**.
+Verified against StarMap `0.4.6` (commit `57846b2`, released 2026-08-02) and game build **2026.11.10.5801**. The StarMap claims rest on the `0.4.6` source, and the claims about the game were checked again against the new build.
 
 StarMap is the loader every KSA code mod depends on. It is MIT licensed, written by @KlaasWhite .
 
 ## Why a loader is needed at all
 
-The game has no concept of a code mod. `mod.toml` declares assets, systems, fonts and meshes; there is no field that names an assembly and nothing in `ModLibrary` loads one. A mod that wants to run code needs something to load its assembly and patch the game. That is the entire reason StarMap exists.
+The game has no concept of a code mod. `mod.toml` declares asset files, fonts, star binaries and settings; there is no field that names an assembly and nothing in `ModLibrary` loads one. A mod that wants to run code needs something to load its assembly and patch the game. That is the entire reason StarMap exists.
 
 ## It does not launch the game, it hosts it
 
@@ -101,14 +101,14 @@ Mods reference the `StarMap.API` NuGet package, mark one class `[StarMapMod]`, a
 | Attribute | When it fires | Hook |
 |---|---|---|
 | `[StarMapBeforeMain]` | before the game's entry point is invoked | called directly by `RuntimeMod.InitializeMod` |
-| `[StarMapImmediateLoad]` | as the game loads that specific mod | Harmony prefix on `Mod.PrepareSystems` |
+| `[StarMapImmediateLoad]` | as the game loads that specific mod | Harmony prefix on `Mod.PrepareSystems`, which game build 2026.11.10.5801 removed (see below) |
 | `[StarMapAllModsLoaded]` | after the game has loaded every mod | Harmony postfix on `ModLibrary.LoadAll` |
 | `[StarMapBeforeGui]` | before the game builds its ImGui frame | Harmony prefix on `Program.OnDrawUiFrame` |
 | `[StarMapAfterGui]` | after the ImGui frame | Harmony postfix on `Program.OnDrawUiViewports` |
 | `[StarMapAfterOnFrame]` | after each simulation frame | Harmony postfix on `Program.OnFrame` |
 | `[StarMapUnload]` | on teardown | called from `ModLoader.Dispose` |
 
-Every one of these patch targets still exists in build 2026.8.3.5117 with a matching signature. Two of them, `Program.OnDrawUiFrame` and `Program.OnDrawUiViewports`, are private, so they are not part of any stable surface and can be renamed by a refactor without anyone noticing until mods stop drawing.
+In build 2026.11.10.5801 every one of these patch targets still exists except `Mod.PrepareSystems`, which was removed: the game now reads each mod through `ContentLoader.ReadSource` and `ContentLoader.TryReadMod`, and has no per-mod method that the loader can patch. `ModLibrary.PrepareAll` gained an optional `IContentLoadProgress` parameter, which a Harmony patch by name is not affected by. The StarMap source at commit `418c64f` still looks up `Mod.PrepareSystems` by name, so `[StarMapImmediateLoad]` has no target on this build. Two of the remaining targets, `Program.OnDrawUiFrame` and `Program.OnDrawUiViewports`, are private, so they are not part of any stable surface and can be renamed by a refactor without anyone noticing until mods stop drawing.
 
 ## What StarMap does not do
 

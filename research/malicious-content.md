@@ -2,6 +2,8 @@
 
 Research for [issue #69](https://github.com/KSAModding/content-manager-design/issues/69).
 
+The claims about the game (that it loads no mod code, the only assembly load in `KSA.VersionInfo`, the `ConfirmModPopup` text, and that mod loading reads declarative `mod.toml` and XML through `ContentLoader.ReadSource`) were checked again against game build **2026.11.10.5801**.
+
 This page answers four questions:
 
 - What does the current index prove, and what does it not prove?
