@@ -1,15 +1,15 @@
 ---
-rfc: "0000"
+rfc: "0127"
 title: Loader bridges
 status: Proposed
 authors: ["@Maximilian-Nesslauer"]
 created: 2026-11-08
-discussion: ""
+discussion: "https://github.com/KSAModding/content-manager-design/pull/127"
 supersedes: []
 superseded-by: []
 ---
 
-# RFC 0000: Loader bridges
+# RFC 0127: Loader bridges
 
 ## Summary
 
