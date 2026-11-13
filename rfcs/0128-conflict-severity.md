@@ -1,15 +1,15 @@
 ---
-rfc: "0000"
+rfc: "0128"
 title: Conflict severity, reasons and index-recorded conflicts
 status: Draft
 authors: ["@SafeShows"]
 created: 2026-11-13
-discussion:
+discussion: https://github.com/KSAModding/content-manager-design/pull/128
 supersedes: []
 superseded-by: []
 ---
 
-# RFC 0000: Conflict severity, reasons and index-recorded conflicts
+# RFC 0128: Conflict severity, reasons and index-recorded conflicts
 
 ## Summary
 
