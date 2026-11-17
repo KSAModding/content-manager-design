@@ -2,6 +2,16 @@
 
 Verified against StarMap `0.4.6` at commit `57846b2`, StarMap development commit `418c64f`, game build **2026.9.7.5402**, and Borea commit `ac1ed3c`. The game claims (the order in `KSA.Program`, the log folder and the `ModLibrary` calls) were checked again against game build **2026.11.10.5801**.
 
+## Changes in the current startup path
+
+Checked against [StarMap 0.5.4](https://github.com/StarMapLoader/StarMap/tree/477f495d1c8d59910ad7f37071b77535f59f8c5d), KSA **2026.11.16.5901**, and [Borea at `901bdd847`](https://github.com/KSAModding/Borea/tree/901bdd847edc50c2316e7d83abdfe3de582fd1b7).
+
+`GameSurveyer.TryLoadCoreAndGame` constructs `StarMapCore` before `GameSurveyer.RunGame` invokes the game entry point. `CoreService.Init` applies the instance override before `ModsLoader.PrepareMods` reconciles the manifest. That leaves a startup period before the game's logger is ready. `Program` still creates `Constants.LogsFolderPath` and installs game logging before it calls `ModLibrary.PrepareAll`, `PreloadAssetBundles` and `LoadAll`.
+
+`RuntimeMod.InitializeMod` now registers `StarMapImmediateLoad` on `Mod.LoadSettings`. `ModLibrary.PrepareAll` calls it during game startup. `StarMapAllModsLoaded` is a postfix on `ModLibrary.LoadAll`. The two callbacks invoke mod methods through reflection.
+
+`ModsLoader.PrepareMods` and `TryLoadWaitingMods` write load results through `Logger`, which writes to standard output. `ProcessStarter.Start` in Borea now redirects standard output and error and reads them into a bounded buffer. `StarMapLoaderProfile.ReadModReports` recognizes loader text such as `Loaded mod`, `Delaying load of mod` and `Failed to initialize mod`. These messages can support a diagnosis, but they do not provide the structured restart-aware report proposed below.
+
 ## Answer
 
 StarMap can identify a mod while it loads the mod and while it calls a StarMap hook.

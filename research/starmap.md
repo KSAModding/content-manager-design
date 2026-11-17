@@ -2,11 +2,21 @@
 
 Verified against StarMap `0.4.6` (commit `57846b2`, released 2026-08-02) and game build **2026.11.10.5801**. The StarMap claims rest on the `0.4.6` source, and the claims about the game were checked again against the new build.
 
-StarMap is the loader every KSA code mod depends on. It is MIT licensed, written by @KlaasWhite .
+StarMap is a loader for KSA code mods. It is MIT licensed and written by [KlaasWhite](https://github.com/KlaasWhite).
+
+## StarMap 0.5.4 on KSA 5901
+
+This section uses [StarMap 0.5.4](https://github.com/StarMapLoader/StarMap/tree/477f495d1c8d59910ad7f37071b77535f59f8c5d) and KSA **2026.11.16.5901**. The older implementation is described below.
+
+- `GameSurveyer.TryLoadCoreAndGame` still sets both the working directory and `APP_CONTEXT_BASE_DIRECTORY` to the game folder before it constructs the loader core and invokes `Program.Main` through `GameSurveyer.RunGame`.
+- `CoreService.Init` applies `StarMapPatches.Init` before `ModsLoader.Init`. `DocumentsPathOverride.TryGetOverride` checks `-InstancePath` before `STARMAP_INSTANCE_PATH`, and `ModsLoader.PrepareMods` still uses `ModLibrary.PrepareManifest` and its enabled entries.
+- `RuntimeMod.InitializeMod` registers `StarMapImmediateLoad` as a prefix on `Mod.LoadSettings`, filtered by mod id. KSA calls that method for each valid mod in `ModLibrary.PrepareAll`, after `Mod.RegisterTo`. The older `Mod.PrepareSystems` target is absent.
+- `RuntimeMod.InitializeMod` registers `StarMapAllModsLoaded` after `ModLibrary.LoadAll` and the frame hooks on `Program.OnFrame`, `Program.OnDrawUiFrame` and `Program.OnDrawUiViewports`. `Program.OnFrame` calls `OnDrawUiViewports` before `OnDrawUiThreadSafe`, so `StarMapAfterGui` occurs before the stock main-view UI has finished.
+- `StarMapCore` registers `IModMenuService` and `IPatchService` with dependency injection. `RuntimeMod.InitializeMod` uses `ActivatorUtilities.CreateInstance` to construct the mod with its service scope.
 
 ## Why a loader is needed at all
 
-The game has no concept of a code mod. `mod.toml` declares asset files, fonts, star binaries and settings; there is no field that names an assembly and nothing in `ModLibrary` loads one. A mod that wants to run code needs something to load its assembly and patch the game. That is the entire reason StarMap exists.
+The game's mod loader does not load .NET mod assemblies. `mod.toml` declares asset files, fonts, star binaries and settings, and `ModLibrary` does not load an assembly named by that file. A .NET mod uses a loader such as StarMap to load its assembly and patch the game.
 
 ## It does not launch the game, it hosts it
 
@@ -44,7 +54,7 @@ Consequences for anything that launches the game:
 
 If either is set, a Harmony prefix is applied to the getter of `KSA.Constants.DocumentsFolderPath`, from `ModLoader.Init`, before mod discovery and before the game's entry point runs. That property is public and is the root of every user-writable path the game has: `ModLibrary.LocalModsFolderPath` and `LocalManifestPath`, plus saves, settings, vehicles, layouts, languages, screenshots, logs and crash dumps. Overriding it moves an entire profile, not just the mods.
 
-This is the only mechanism by which two KSA setups can hold different mod sets. Properties that follow from how it works:
+StarMap uses this mechanism to give two KSA setups different mod sets. Properties that follow from how it works:
 
 - **A mod that does not go through `Constants.DocumentsFolderPath` escapes it** and keeps writing to the shared location.
 - **A manager can drive it without touching StarMap's config**: set `STARMAP_INSTANCE_PATH` on the spawned process, or pass `-InstancePath`, per launch.
