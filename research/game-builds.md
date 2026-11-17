@@ -107,7 +107,7 @@ The popup has two buttons: GET opens the URL of the master server in the browser
 
 The launch check does not look at `GameSettings.System.CheckForUpdates`.
 That setting, which the popup's "Always Check" checkbox writes, only enables the "Check for Update" menu entry (`VersionInfo.AllowUpdateCheck`).
-The game has no launch argument that skips the check (`Program.CliArgs` knows `build-info`, `fixed-viewport` and `wayland`).
+KSA 2026.11.16.5901 has no launch argument that skips the check. `Program.CliArgs` contains `build-info`, `fixed-viewport`, `force-x11` and `wayland`.
 Without a connection the check only writes an error to the log.
 
 So every online start of a kept build shows the popup, and a player who clicks GET out of habit closes the game.
