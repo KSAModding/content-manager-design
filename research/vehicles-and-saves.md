@@ -1,6 +1,15 @@
 # Vehicles and saves, and the mods they need
 
-Verified against game build **2026.9.10.5438** and updated for **2026.9.22.5482**, and for the Unscience case against `meow-sci/unscience` at commit `93c9a50`.
+Verified against game build **2026.9.10.5438** and updated for **2026.9.22.5482**, and for the Unscience case against `meow-sci/unscience` at commit `93c9a50`. The claims named in the section "Changed in 2026.11.10.5801" were checked against game build **2026.11.10.5801**.
+
+## Changed in 2026.11.10.5801
+
+Only the claims below were checked again against this build. The rest of the page still stands on the builds named above.
+Checked and unchanged: `PartInstance.GetTemplate` calls `ModLibrary.Get<PartTemplate>`, which throws `NullReferenceException` for an id that no mod provides; `PartInstance.FindMissingParts` and `UncompressedVehicleSave.Load` refuse a vehicle with missing parts (the build adds an error log line to the alert); `XmlHelper` still registers module save types only from the game assembly (`Assembly.GetExecutingAssembly`, now in `XmlHelper.BuildAttributeOverrides`); module state that matches no module is dropped with a warning (`PartTree.ApplyModuleSaveData`); and the `systems` key of `meta.toml` is still written from `Universe.CurrentSystem` and read only by `ToConsole`.
+Changed: `SerializedCollection.Register` no longer replaces or drops a second item with the same id without a message.
+It keeps the first item and returns false.
+When content loads, `ContentLoader.ReportRejected` logs a `DuplicateId` content error that names the id and says that the first row wins, and `ModLibrary.PrintContentErrors` reports it.
+An id that a mod declares twice is therefore still a single global namespace where the first mod in load order wins, but the player can now see the clash in the content errors.
 
 ## Changed in 2026.10.19.5638
 
@@ -106,7 +115,7 @@ Five real saves were 430 to 670 KB, five real vehicles 78 to 180 KB.
 
 Two properties of these ids matter for any dependency check:
 
-- **No id names its mod.** `SerializedId.Mod` is set when a template loads, but it is `XmlIgnore`, so the providing mod is not written. Part ids are a single global namespace: `SerializedCollection.Register` keeps the first template with an id and silently drops any later one.
+- **No id names its mod.** `SerializedId.Mod` is set when a template loads, but it is `XmlIgnore`, so the providing mod is not written. Part ids are a single global namespace: `SerializedCollection.Register` keeps the first template with an id and drops any later one. Since 2026.11.10.5801 `ContentLoader.ReportRejected` logs this as a `DuplicateId` content error, before that it was silent.
 - **Mod code cannot add its own records to these files.** `XmlHelper` registers module save types only from the game assembly (`Assembly.GetExecutingAssembly`). A mod that keeps its own state must patch that or write a file of its own. Unknown elements and attributes are skipped by `XmlSerializer` by default, and the game attaches no `UnknownElement` handler, so such data is dropped on load. `UncompressedSave.Write` and `UncompressedVehicleSave.Write` delete the whole folder and create it again (`SaveDirectory.TryReplace`) before they write, so the next save also deletes any extra file in the folder. When the folder cannot be deleted, the game does not write the save and shows an alert.
 
 ## What the game does with content that is not installed

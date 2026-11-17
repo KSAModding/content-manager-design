@@ -1,6 +1,6 @@
 # Mod load and crash reports
 
-Verified against StarMap `0.4.6` at commit `57846b2`, StarMap development commit `418c64f`, game build **2026.9.7.5402**, and Borea commit `ac1ed3c`.
+Verified against StarMap `0.4.6` at commit `57846b2`, StarMap development commit `418c64f`, game build **2026.9.7.5402**, and Borea commit `ac1ed3c`. The game claims (the order in `KSA.Program`, the log folder and the `ModLibrary` calls) were checked again against game build **2026.11.10.5801**.
 
 ## Answer
 
@@ -28,7 +28,10 @@ The game entry point has not run yet.
 
 After `StarMapCore.Init` returns, `GameSurveyer.RunGame` invokes the game entry point.
 `KSA.Program.Main` constructs `KSA.Program`, and the constructor creates `Constants.LogsFolderPath`, configures `KittenSpaceAgency.log`, installs the last-chance exception collector, and initializes the logging system.
-The constructor later calls `ModLibrary.PrepareAll` and `ModLibrary.LoadAll`, which run the `[StarMapImmediateLoad]` and `[StarMapAllModsLoaded]` hooks through StarMap's patches.
+The constructor later calls `ModLibrary.PrepareAll`, `ModLibrary.PreloadAssetBundles` and `ModLibrary.LoadAll`, and StarMap's patch on `ModLibrary.LoadAll` runs the `[StarMapAllModsLoaded]` hooks.
+The `[StarMapImmediateLoad]` hook was bound to `Mod.PrepareSystems`, which game build 2026.11.10.5801 removed.
+Since that build the game reads a mod through `ContentLoader.ReadSource` and `ContentLoader.TryReadMod` and has no per-mod method that a loader can patch for this hook.
+The StarMap source at the commits named above still looks up `Mod.PrepareSystems`, so that hook has no target on this build.
 Frame and user interface hooks run after that.
 
 The result is a clear boundary:
@@ -63,7 +66,7 @@ Examples include parsing the StarMap table, loading the assembly, enumerating it
 An exception from one of these operations leaves no StarMap record and can stop the complete launch before the game log exists.
 
 The same attribution problem continues after game startup.
-`ModPatches.OnLoadMod`, `ModLibraryPatches.AfterLoad`, and `ProgramPatcher` invoke mod methods through `MethodInfo.Invoke` without a mod-specific exception record.
+`ModPatches.OnLoadMod` (when its target exists), `ModLibraryPatches.AfterLoad`, and `ProgramPatcher` invoke mod methods through `MethodInfo.Invoke` without a mod-specific exception record.
 An unhandled exception can reach the game monitor, but the resulting stack trace uses .NET type and method names.
 A namespace can differ from the folder name that is the mod id, so matching a stack frame to an installed folder is only a guess.
 

@@ -1,6 +1,6 @@
 # How KSA finds, enables, and loads mods
 
-Verified against game build **2026.8.3.5117**.
+Verified against game build **2026.11.10.5801**.
 
 ## Where mods live
 
@@ -15,11 +15,11 @@ The user folder comes from `ModLibrary.LocalModsFolderPath`, which builds on `Co
 
 `ModLibrary.CheckDirectories`, called at application start, creates both the Documents folder and the mods folder if they are missing.
 
-**The `Content` path is relative.** `ModLibrary.PrepareManifest`, `ModLibrary.PrepareAll`, and `ModEntry.Exists` all build it as a bare relative `Content`. `Program.Main` sets the current directory to the executable's own folder as its very first statement, so this resolves next to the game binary regardless of how the game was launched.
+**The `Content` path is relative.** `ModLibrary.PrepareManifest`, `ModLibrary.PrepareAll` (which hands `"Content"` to `ContentLoader.ReadSource`), and `ModEntry.Exists` all use it as a bare relative `Content`. `Program.Main` sets the current directory to the executable's own folder as its very first statement, so this resolves next to the game binary regardless of how the game was launched.
 
 ## Mod identity is the folder name
 
-There is no id field anywhere. `Mod.MakeUsing` deserializes `mod.toml` and then assigns the id from the folder name, overwriting whatever the file might have contained.
+There is no id field anywhere. `Mod.MakeUsing`, which `ContentLoader.TryReadMod` calls, deserializes `mod.toml` and then assigns the id from the folder name, overwriting whatever the file might have contained.
 
 Consequences worth stating plainly:
 
@@ -28,7 +28,9 @@ Consequences worth stating plainly:
 
 ## What `mod.toml` contains
 
-The fields the game reads (`Mod`): `name`, plus asset and capability declarations such as `systems`, `assets`, `fonts`, `planetMeshes`, `starBinaries`, `simulationSpeeds`, `console`, and several `supported*` quality lists.
+The fields the game reads (`Mod`): `name`, plus asset and capability declarations: `assets`, `fonts`, `starBinaries`, `simulationSpeeds`, `textureSizeCaps`, `console`, and several `supported*` quality lists.
+
+The fields `systems`, `planetMeshes` and `planetRandomHeightmapCollections` were removed in build 2026.11.10.5801. Star systems are `<System>` assets in the files listed under `assets` now, so a mod that still declares systems in the old fields no longer gets them loaded by the game.
 
 What it does **not** contain:
 
@@ -74,7 +76,7 @@ On first run, `ModLibrary.PrepareManifest` copies `Content/manifest.toml` to tha
 
 **The file is rewritten, not edited.** `ModManifest.Save` regenerates the whole file from the in-memory list and emits only `id` and `enabled` per entry. Any other key, comment, or formatting in that file is destroyed the next time the game saves it. A manager cannot use `manifest.toml` to store its own state.
 
-**Entry order is load order.** `ModLibrary.PrepareAll` walks the manifest in order and loads each enabled mod as it goes, and `ModManifest.IsChanged` treats a changed index as a change. Reordering entries reorders loading.
+**Entry order is load order.** `ContentLoader.ReadSource`, called from `ModLibrary.PrepareAll`, walks the manifest in order and reads each enabled mod as it goes, and `ModManifest.IsChanged` treats a changed index as a change. Reordering entries reorders loading.
 
 **Ids are written unescaped.** `ModManifest.Save` writes the id straight into a quoted TOML string with no escaping, so a folder name containing a quote produces a corrupt file. Windows forbids such names, other platforms do not.
 
@@ -82,13 +84,19 @@ The game writes this file from several places: `ModLibrary.PrepareManifest` duri
 
 ## Loading
 
-`ModLibrary.PrepareAll` iterates the manifest in order, skips disabled entries, and for each enabled one resolves `Content/<id>` first, then the user mods folder, requiring a `mod.toml` in whichever it finds.
+Loading has three steps, all called from `Program` in this order: `ModLibrary.PrepareAll`, `ModLibrary.PreloadAssetBundles` and `ModLibrary.LoadAll`.
+
+`ModLibrary.PrepareAll` first runs `ModLibrary.PrepareManifest`. It then calls `ContentLoader.ReadSource`, which iterates the manifest in order and skips disabled entries. For each enabled one, `ContentLoader.TryReadMod` looks for the folder `Content/<id>` first and then the user mods folder, and reads the `mod.toml` it finds (the user folder is the fallback when `Content/<id>` has no `mod.toml`). `ContentLoader.ReadSource` then reads every XML file that the mod lists under `assets`.
+
+A mod whose folder or `mod.toml` is missing, or whose `mod.toml` is malformed, is skipped with a `MissingFile` or `MalformedFile` content error. The same holds for a missing or malformed asset file. None of these stops the game from starting. `ModLibrary.PreloadAssetBundles` and `ModLibrary.LoadAll` then run `ContentLoader.Load` over all the rows that were read, and `ModLibrary.PrintContentErrors` reports what went wrong.
+
+In builds before 2026.11.10.5801 each mod loaded itself during `ModLibrary.PrepareAll`, with its own `Mod.PrepareSystems` step.
 
 ## There is no per-install isolation, and no way to create one
 
 - The mods folder and the manifest are per **user**, not per install. Every copy of the game on a machine shares them.
-- The game accepts exactly two command line arguments, `-build-info` and `-fixed-viewport`. Neither affects any path. `build-info` generates build information and exits; `fixed-viewport` disables multiple windows.
-- The game reads **no environment variables at all**. There is not a single environment variable lookup in the shipped assemblies.
+- The game accepts four command line arguments (`Program.CliArgs`): `-build-info`, `-fixed-viewport`, `-force-x11` and `-wayland`. None affects any path. `build-info` generates build information and exits; `fixed-viewport` disables multiple windows; the other two choose the window system on Linux.
+- The only environment variables the game reads are the `KSA_PROFILE_*` ones of `ProfilerCapture`, which control profiler captures. `KSA_PROFILE_CAPTURE_OUT` and `KSA_PROFILE_SPIKE_OUT` name an output file or folder for those captures, and none of them moves the mods folder or the manifest.
 - `Program.Main` forces the working directory to the executable's folder before anything else runs, so the relative `Content` path cannot be influenced by launching from elsewhere either.
 
 The loader does not provide an escape hatch either. StarMap reuses the game's own discovery rather than implementing its own, so pointing it somewhere else does not move where mods are found. See `research/starmap.md`.
