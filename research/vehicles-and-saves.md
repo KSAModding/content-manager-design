@@ -1,6 +1,21 @@
 # Vehicles and saves, and the mods they need
 
-Verified against game build **2026.9.10.5438** and updated for **2026.9.22.5482**, and for the Unscience case against `meow-sci/unscience` at commit `93c9a50`. The claims named in the section "Changed in 2026.11.10.5801" were checked against game build **2026.11.10.5801**.
+Verified against game build **2026.9.10.5438** and updated for **2026.9.22.5482**, and for the Unscience case against `meow-sci/unscience` at commit `93c9a50`. The claims named in the section "Changed in 2026.11.10.5801" were checked against game build **2026.11.10.5801**, and the claims named in the section "Changed in 2026.11.16.5901" against game build **2026.11.16.5901**.
+
+## Changed in 2026.11.16.5901
+
+Only the claims below were checked against this build.
+A vehicle can now carry a mission plan.
+`VehicleSaveData` has an optional `Mission` element, a `MissionPlan` with the attributes `Destination`, `BodyId`, `Arrival`, `Trip`, `Custom` and `CruiseSpeedC`, and `UniverseTimeReference` children such as `Stay` and `CustomLength`.
+It is written only when a plan is set (`VehicleSaveData.ShouldSerializeMission`).
+`vehicle.xml` holds it when the player picks a mission in the editor and saves the vehicle, and `universe.xml` holds it for each launched vehicle, because `Vehicle.SerializeSave` copies it into `VehicleData`.
+`BodyId` is one more body id in the file.
+A body that is not installed does not end the game here: `MissionTiming` and `MissionPicker` look it up with `TryGet`, and `MissionProgress.FindRelation` only compares the id as a string.
+The mission then has an unknown destination.
+New: `UncompressedVehicleSave.Load` and `CelestialSystem.DeserializeSave` call `PartInstance.DropStaleConnectors` before they build the part tree.
+It removes each saved connector whose index is not below the connector count of the installed part template, in the whole tree.
+When it removes one, the game shows a yellow alert that says the parts of the vehicle changed since it was saved, and it still loads the vehicle.
+So a vehicle that names a connector which a mod update removed from a part still loads, and the alert asks the player to check that its parts are still attached where they should be.
 
 ## Changed in 2026.11.10.5801
 
@@ -95,7 +110,7 @@ The game version is the one version the game records, and it only displays it (s
 
 Both are written by `XmlSerializer` through `XmlHelper.SerializeWithoutNaN`.
 `universe.xml` is a `UniverseData`: `GameTime`, `CameraData`, one `System` with an `Id`, a `Vehicle` element per vehicle (`VehicleData`), the ground clutter of each body (`ClutterEcotypeSaveData`), and the `KittenRoster`.
-`vehicle.xml` is a `VehicleSaveData`: the `Id` (the name), the part tree under `RootPartRef`, sequences, fuel links, `LaunchGameTime`, and a `Character` for a kitten.
+`vehicle.xml` is a `VehicleSaveData`: the `Id` (the name), the part tree under `RootPartRef`, sequences, fuel links, `LaunchGameTime`, a `Character` for a kitten, and since 2026.11.16.5901 an optional `Mission`.
 
 `VehicleData` extends `VehicleSaveData`, so a vehicle inside a save has the same part tree as a vehicle file, plus orbit, flight computer and resource state.
 Five real saves were 430 to 670 KB, five real vehicles 78 to 180 KB.
