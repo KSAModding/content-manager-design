@@ -1,15 +1,15 @@
 ---
-rfc: "0000"
+rfc: "0131"
 title: A poke for the watcher when its schedule stalls
 status: Draft
 authors: ["@LaurensDeV"]
 created: 2026-11-24
-discussion:
+discussion: https://github.com/KSAModding/content-manager-design/pull/131
 supersedes: []
 superseded-by: []
 ---
 
-# RFC 0000: A poke for the watcher when its schedule stalls
+# RFC 0131: A poke for the watcher when its schedule stalls
 
 Amends [The watcher](0033-content-index.md#the-watcher) of [RFC 0033](0033-content-index.md) and the non-goals of [RFC 0025](0025-scope.md).
 `spec_version` and `snapshot_version` stay at `1`.
