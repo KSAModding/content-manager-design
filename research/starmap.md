@@ -66,6 +66,20 @@ A Harmony prefix on `ModLibrary.PrepareAll` checks whether the game discovered n
 
 One coupling to note: the confirm dialog renders through the game's own internals (`Program.GetRenderer`, the ImGui backend, GLFW polling). That works today and is exactly the kind of private surface a game refactor can rename without notice, same category as the two private GUI hook targets below.
 
+## The game can restart itself too (KSA 2026.11.25.5949)
+
+Checked against KSA 2026.11.25.5949 and StarMap `main` at `5cc8fb4`, by reading the code; not seen in a game run.
+
+When a save of another star system will not fit in video memory, `SaveSystemSwap.OnFrame` calls `SaveSystemRestart.RestartInto` without a confirm dialog. It starts `Environment.ProcessPath` again with the current arguments plus `-load <save>`, and exits with `Environment.Exit(0)`. It sets no working directory, so the new process inherits the current one.
+
+Under StarMap the game runs inside the StarMap process, so `Environment.ProcessPath` is `StarMap.exe`. The arguments and the environment carry over, including `-InstancePath` and `STARMAP_INSTANCE_PATH`. The inherited working directory is the game folder, because `GameSurveyer.TryLoadCoreAndGame` and `Program.Main` both set it there. `LoaderConfig.TryLoadConfig` reads `./StarMapConfig.json` relative to the working directory, finds none in the game folder, writes an empty one there and exits. The game closes instead of loading the save.
+
+For a manager this means:
+
+- A launch through StarMap does not survive this restart until StarMap resolves its config next to its own executable, or the game sets the working directory of the restart.
+- The first process exits with code 0. A manager that watches only that process sees a normal exit, and the session log of that run has no clean shutdown line.
+- A direct `KSA.exe` start is not affected.
+
 ## It reuses the game's own mod discovery
 
 `ModLoader.PrepareMods` calls `ModLibrary.PrepareManifest`, then walks `ModLibrary.Manifest.Mods` in order and skips every entry whose `Enabled` is false. For each remaining entry, `RuntimeMod.TryCreateMod` looks for `Content/<id>/mod.toml` and then `ModLibrary.LocalModsFolderPath/<id>/mod.toml`.
