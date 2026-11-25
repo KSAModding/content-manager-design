@@ -95,7 +95,7 @@ In builds before 2026.11.10.5801 each mod loaded itself during `ModLibrary.Prepa
 ## There is no per-install isolation, and no way to create one
 
 - The mods folder and the manifest are per **user**, not per install. Every copy of the game on a machine shares them.
-- The game accepts four command line arguments (`Program.CliArgs`): `-build-info`, `-fixed-viewport`, `-force-x11` and `-wayland`. None affects any path. `build-info` generates build information and exits; `fixed-viewport` disables multiple windows; the other two choose the window system on Linux.
+- The game accepts five command line arguments (`Program.CliArgs`, build 2026.11.25.5949): `-build-info`, `-fixed-viewport`, `-force-x11`, `-wayland` and `-load`. None affects any path. `build-info` generates build information and exits; `fixed-viewport` disables multiple windows; `force-x11` and `wayland` choose the window system on Linux; `load <save>` (added in 2026.11.25.5949, `LoadSaveArg`) names a save from the saves folder that the game loads once it has started (`SaveSystemRestart.SetPending`).
 - The only environment variables the game reads are the `KSA_PROFILE_*` ones of `ProfilerCapture`, which control profiler captures. `KSA_PROFILE_CAPTURE_OUT` and `KSA_PROFILE_SPIKE_OUT` name an output file or folder for those captures, and none of them moves the mods folder or the manifest.
 - `Program.Main` forces the working directory to the executable's folder before anything else runs, so the relative `Content` path cannot be influenced by launching from elsewhere either.
 
