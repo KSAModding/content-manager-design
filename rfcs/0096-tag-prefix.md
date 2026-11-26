@@ -26,7 +26,10 @@ The watcher takes every release that is not a draft, and `since` only cuts off o
 `tag_prefix` is a non-empty ASCII string without whitespace, valid only next to a `github` key, and it filters that host both as the authority and as a mirror, but not SpaceDock, which has no tags and lists the versions of one mod only.
 A GitHub release is a candidate only when its tag starts with the prefix, compared case-sensitively as GitHub compares tags.
 The rest of the tag goes through `normalize_version` as every tag does ([RFC 0072](0072-version-forms.md)), so one leading lowercase `v` is allowed there, and `"gatos-"` accepts both `gatos-1.2.0` and `gatos-v1.2.0`.
-A candidate whose rest does not parse is reported as today, and the asset name is matched against the rest without its leading `v`.
+A candidate whose rest does not parse is reported as today.
+When several ZIPs remain after platform archives are set aside, the selector checks `<id>.zip`, `<id>-<version-tag>.zip` and `<id>_<version-tag>.zip` in that order, ignoring case.
+The version tag is the tag without its prefix and leading `v`.
+For a listing with `tag_prefix`, the last exact match is `<id>-<full-tag>.zip`, including the prefix.
 A release that is not a candidate leaves the release list before every pass that reads it, the listing check of content-index included, so it is never stamped and never reported.
 `since` compares with the version of the rest and reaches candidates only, and the release file gets no new field.
 
